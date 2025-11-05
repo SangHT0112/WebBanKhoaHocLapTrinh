@@ -1,0 +1,22 @@
+    .filter-menu {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .filter-menu button {
+      padding: 8px 16px;
+      border: none;
+      background: #eee;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.3s;
+    }
+    .filter-menu button:hover {
+      background: #ddd;
+    }
+    .filter-menu button.active {
+      background: #007bff;
+      color: white;
+    }
