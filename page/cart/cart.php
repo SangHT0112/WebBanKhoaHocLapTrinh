@@ -93,27 +93,43 @@ $vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.
         </div>
 
         <!-- Nút xác nhận thanh toán -->
-        <div class="mt-6">
-          <button id="btnThanhToan" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition">
-            ✅ Xác nhận thanh toán
-          </button>
-        </div>
+        <!-- Nút xác nhận thanh toán -->
+<div class="mt-6">
+  <button id="btnThanhToan" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition">
+    ✅ Xác nhận thanh toán
+  </button>
+</div>
 
-        <!-- QR Thanh toán VietQR (ẩn ban đầu) -->
-        <div id="vietqrSection" class="mt-6 text-center hidden">
-          <p class="text-gray-700 mb-2">📱 Quét mã VietQR để thanh toán:</p>
-          <img src="<?= $vietqr_url ?>" alt="VietQR Thanh toán" class="mx-auto w-64 rounded-lg shadow-md border">
-          <p class="mt-2 text-sm text-gray-500">
-            Ngân hàng Agribank - STK: <b>710 420 5318045</b><br>
-            Tên tài khoản: <b>KhoaHocOnline</b><br>
-            Nội dung: <b><?= htmlspecialchars($description) ?></b>
-          </p>
-          <div class="mt-4">
-            <a href="checkout.php" class="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition">
-              ✅ Tôi đã chuyển khoản xong
-            </a>
-          </div>
-        </div>
+<!-- Chọn phương thức thanh toán -->
+<div id="chonPTTT" class="hidden mt-6 text-center">
+  <p class="text-gray-700 mb-3 font-semibold">Chọn phương thức thanh toán:</p>
+  <div class="flex justify-center gap-4 flex-wrap">
+    <button id="btnVietQR" class="bg-red-500 text-white px-5 py-2 rounded-full hover:bg-red-600 transition">
+      📱 Quét mã VietQR
+    </button>
+    <button id="btnMomo" class="bg-pink-500 text-white px-5 py-2 rounded-full hover:bg-pink-600 transition">
+      💰 Thanh toán MOMO
+    </button>
+  </div>
+</div>
+
+<!-- QR Thanh toán VietQR -->
+<div id="vietqrSection" class="mt-6 text-center hidden">
+  <p class="text-gray-700 mb-2">📱 Quét mã VietQR để thanh toán:</p>
+  <img src="<?= $vietqr_url ?>" alt="VietQR Thanh toán" class="mx-auto w-64 rounded-lg shadow-md border">
+  <p class="mt-2 text-sm text-gray-500">
+    Ngân hàng: <b>Agribank</b><br>
+    STK: <b>710 420 5318045</b><br>
+    Tên TK: <b>KhoaHocOnline</b><br>
+    Nội dung: <b><?= htmlspecialchars($description) ?></b>
+  </p>
+  <div class="mt-4">
+    <a href="checkout.php" class="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition">
+      ✅ Tôi đã chuyển khoản xong
+    </a>
+  </div>
+</div>
+
 
       <?php else: ?>
         <p class="text-gray-600">
@@ -123,12 +139,31 @@ $vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.
     </section>
   </main>
 
-  <script>
-    document.getElementById("btnThanhToan")?.addEventListener("click", function() {
-      document.getElementById("vietqrSection").classList.remove("hidden");
-      this.classList.add("hidden");
-    });
-  </script>
+ <script>
+  const btnThanhToan = document.getElementById("btnThanhToan");
+  const chonPTTT = document.getElementById("chonPTTT");
+  const vietqrSection = document.getElementById("vietqrSection");
+  const btnVietQR = document.getElementById("btnVietQR");
+  const btnMomo = document.getElementById("btnMomo");
+
+  // Khi nhấn "Xác nhận thanh toán"
+  btnThanhToan?.addEventListener("click", function() {
+    btnThanhToan.classList.add("hidden");
+    chonPTTT.classList.remove("hidden");
+  });
+
+  // Khi chọn VietQR
+  btnVietQR?.addEventListener("click", function() {
+    chonPTTT.classList.add("hidden");
+    vietqrSection.classList.remove("hidden");
+  });
+
+  // Khi chọn MOMO
+  btnMomo?.addEventListener("click", function() {
+    window.location.href = "momo_payment.php?amount=<?= $total ?>&user=<?= $user_id ?>";
+  });
+</script>
+
 
 </body>
 </html>

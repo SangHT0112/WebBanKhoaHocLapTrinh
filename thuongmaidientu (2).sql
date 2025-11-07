@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 24, 2025 at 05:46 AM
+-- Generation Time: Nov 05, 2025 at 02:10 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,27 @@ SET time_zone = "+00:00";
 --
 -- Database: `thuongmaidientu`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `carts`
+--
+
+CREATE TABLE `carts` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `quantity` int(11) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `carts`
+--
+
+INSERT INTO `carts` (`id`, `user_id`, `course_id`, `quantity`, `created_at`) VALUES
+(3, 1, 1, 1, '2025-11-05 19:48:05');
 
 -- --------------------------------------------------------
 
@@ -79,6 +100,31 @@ INSERT INTO `courses` (`id`, `ten_khoa_hoc`, `mo_ta`, `gia`, `so_hoc_vien`, `so_
 (4, 'Lộ Trình Mobile Flutter', 'Xây dựng ứng dụng iOS & Android với Flutter.', 3500000.00, 600, 55, '4', '📱', 'flutter.jpg', '2025-10-23 22:25:51', '2025-10-24 09:40:45', 4),
 (5, 'Lộ Trình AI Cơ Bản', 'Machine Learning & Deep Learning với Python.', 4200000.00, 430, 70, '5', '🤖', 'ai.jpg', '2025-10-23 22:25:51', '2025-10-24 09:40:48', 5),
 (6, 'Lộ Trình DevOps Thực Chiến', 'CI/CD, Docker, Kubernetes, AWS, Cloud.', 3800000.00, 520, 65, '6', '☁️', 'devops.jpg', '2025-10-23 22:25:51', '2025-10-24 09:40:51', 6);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_details`
+--
+
+CREATE TABLE `course_details` (
+  `id` int(11) NOT NULL,
+  `ma_khoa_hoc` int(11) NOT NULL,
+  `mo_ta_day_du` text NOT NULL,
+  `chuong_trinh_hoc` text NOT NULL,
+  `ten_giang_vien` varchar(255) NOT NULL,
+  `gioi_thieu_giang_vien` text NOT NULL,
+  `loi_ich` text NOT NULL,
+  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `course_details`
+--
+
+INSERT INTO `course_details` (`id`, `ma_khoa_hoc`, `mo_ta_day_du`, `chuong_trinh_hoc`, `ten_giang_vien`, `gioi_thieu_giang_vien`, `loi_ich`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(1, 1, 'Khóa học PHP Master giúp bạn làm chủ PHP, MySQL và Laravel, từ cơ bản đến chuyên sâu.', '[\r\n    {\"module\": \"Module 1: PHP Cơ Bản\", \"duration\": \"2 tuần\", \"content\": \"Cấu trúc, biến, hàm, vòng lặp.\"},\r\n    {\"module\": \"Module 2: Cơ Sở Dữ Liệu MySQL\", \"duration\": \"2 tuần\", \"content\": \"Kết nối, CRUD, chống SQL Injection.\"},\r\n    {\"module\": \"Module 3: Lập Trình Hướng Đối Tượng & Composer\", \"duration\": \"2 tuần\", \"content\": \"Class, kế thừa, autoload, Composer.\"},\r\n    {\"module\": \"Module 4: Laravel Framework\", \"duration\": \"3 tuần\", \"content\": \"MVC, Eloquent ORM, Authentication, API RESTful.\"},\r\n    {\"module\": \"Module 5: Triển Khai & Tối Ưu\", \"duration\": \"1 tuần\", \"content\": \"Triển khai Heroku/AWS, bảo mật, tối ưu hiệu năng.\"}\r\n]', 'Huỳnh Thanh Sang', '5+ năm kinh nghiệm PHP/Laravel tại FPT Software, đào tạo hơn 500 học viên và chia sẻ kiến thức trên YouTube.', '[\r\n    {\"title\": \"Chứng chỉ hoàn thành\", \"description\": \"Được công nhận trong ngành IT\"},\r\n    {\"title\": \"Hỗ trợ mentor 1:1\", \"description\": \"Qua Discord và Zoom suốt khóa học\"},\r\n    {\"title\": \"Truy cập trọn đời\", \"description\": \"Toàn bộ bài giảng và code mẫu\"},\r\n    {\"title\": \"Hoàn tiền 100%\", \"description\": \"Nếu không hài lòng trong 30 ngày\"}\r\n]', '2025-10-24 04:08:39', '2025-10-24 04:08:39');
 
 -- --------------------------------------------------------
 
@@ -190,6 +236,50 @@ INSERT INTO `modules` (`id`, `course_id`, `ten_module`, `mo_ta`, `thu_tu`) VALUE
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `orders`
+--
+
+CREATE TABLE `orders` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `tong_tien` decimal(10,2) NOT NULL,
+  `trang_thai` enum('chờ duyệt','đã duyệt','đã hủy') DEFAULT 'chờ duyệt',
+  `ngay_tao` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`id`, `user_id`, `tong_tien`, `trang_thai`, `ngay_tao`) VALUES
+(3, 2, 2500000.00, 'chờ duyệt', '2025-10-31 15:47:45'),
+(4, 1, 2500000.00, 'chờ duyệt', '2025-11-05 19:47:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `order_items`
+--
+
+CREATE TABLE `order_items` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `so_luong` int(11) DEFAULT 1,
+  `don_gia` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `course_id`, `so_luong`, `don_gia`) VALUES
+(1, 3, 1, 1, 2500000.00),
+(2, 4, 1, 1, 2500000.00);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `reviews`
 --
 
@@ -213,6 +303,7 @@ CREATE TABLE `users` (
   `username` varchar(100) NOT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `role` enum('admin','user') NOT NULL DEFAULT 'user',
   `avatar` varchar(255) DEFAULT 'uploads/avatars/default.png',
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -222,12 +313,20 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `email`, `password`, `avatar`, `created_at`, `updated_at`) VALUES
-(1, 'Thanh Sang', 'huynhtsang2004@gmail.com', '111111', '', '2025-10-17 15:40:34', '2025-10-23 20:25:44');
+INSERT INTO `users` (`id`, `username`, `email`, `password`, `role`, `avatar`, `created_at`, `updated_at`) VALUES
+(1, 'Thanh Sang', 'huynhtsang2004@gmail.com', '111111', 'admin', '', '2025-10-17 15:40:34', '2025-10-31 14:55:46'),
+(2, 'Gia Bảo', 'bao022101023@tgu.edu.vn', '111111', 'user', '', '2025-10-31 14:56:58', '2025-10-31 14:56:58');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `carts`
+--
+ALTER TABLE `carts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `categories`
@@ -241,6 +340,13 @@ ALTER TABLE `categories`
 ALTER TABLE `courses`
   ADD PRIMARY KEY (`id`),
   ADD KEY `danh_muc_id` (`danh_muc_id`);
+
+--
+-- Indexes for table `course_details`
+--
+ALTER TABLE `course_details`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `ma_khoa_hoc` (`ma_khoa_hoc`);
 
 --
 -- Indexes for table `course_instructors`
@@ -278,6 +384,21 @@ ALTER TABLE `modules`
   ADD KEY `course_id` (`course_id`);
 
 --
+-- Indexes for table `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `course_id` (`course_id`);
+
+--
 -- Indexes for table `reviews`
 --
 ALTER TABLE `reviews`
@@ -297,6 +418,12 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `carts`
+--
+ALTER TABLE `carts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
@@ -309,10 +436,16 @@ ALTER TABLE `courses`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT for table `course_details`
+--
+ALTER TABLE `course_details`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `enrollments`
 --
 ALTER TABLE `enrollments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `instructors`
@@ -333,6 +466,18 @@ ALTER TABLE `modules`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
+-- AUTO_INCREMENT for table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `order_items`
+--
+ALTER TABLE `order_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
@@ -342,17 +487,29 @@ ALTER TABLE `reviews`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
 --
 
 --
+-- Constraints for table `carts`
+--
+ALTER TABLE `carts`
+  ADD CONSTRAINT `carts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `courses`
 --
 ALTER TABLE `courses`
   ADD CONSTRAINT `courses_ibfk_1` FOREIGN KEY (`danh_muc_id`) REFERENCES `categories` (`id`);
+
+--
+-- Constraints for table `course_details`
+--
+ALTER TABLE `course_details`
+  ADD CONSTRAINT `course_details_ibfk_1` FOREIGN KEY (`ma_khoa_hoc`) REFERENCES `courses` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `course_instructors`
@@ -379,6 +536,19 @@ ALTER TABLE `lessons`
 --
 ALTER TABLE `modules`
   ADD CONSTRAINT `modules_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`);
+
+--
+-- Constraints for table `orders`
+--
+ALTER TABLE `orders`
+  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
+  ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`);
 
 --
 -- Constraints for table `reviews`

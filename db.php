@@ -4,7 +4,7 @@ class Database {
   private $host = 'localhost';
   private $user = 'root';
   private $pass = '';
-  private $dbname = 'thuongmaidientu'; // đổi tên database của bạn
+  private $dbname = 'webbankhoahoc'; // đổi tên database của bạn
 
   public function connect() {
     $conn = new mysqli($this->host, $this->user, $this->pass, $this->dbname);
