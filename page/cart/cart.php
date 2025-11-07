@@ -31,8 +31,8 @@ while ($row = $result->fetch_assoc()) {
 }
 
 // Cấu hình VietQR
-$bank_id = "KLB";
-$account_no = "0915131493";
+$bank_id = "agribank";
+$account_no = "7104205318045";
 $account_name = "KhoaHocOnline";
 $template = "compact2";
 $description = "Thanh toan khoa hoc user " . $user_id;
