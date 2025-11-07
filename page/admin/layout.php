@@ -20,6 +20,8 @@ $page = $_GET['page'] ?? 'dashboard'; // nếu không có ?page thì mặc đị
         <a href="?page=courses" class="block p-2 rounded hover:bg-gray-700 <?= $page=='courses'?'bg-gray-700':'' ?>">📚 Khóa học</a>
         <a href="?page=users" class="block p-2 rounded hover:bg-gray-700 <?= $page=='users'?'bg-gray-700':'' ?>">👥 Người dùng</a>
         <a href="?page=settings" class="block p-2 rounded hover:bg-gray-700 <?= $page=='settings'?'bg-gray-700':'' ?>">⚙️ Cài đặt</a>
+       <a href="../../index.php" class="block p-2 rounded hover:bg-gray-700 <?= $page=='settings'?'bg-gray-700':'' ?>">🎓 Trang bán khóa học</a>
+
       </nav>
       <div class="p-3 border-t border-gray-700 text-center text-sm text-gray-400">© 2025 Admin</div>
     </aside>
