@@ -93,43 +93,41 @@ $vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.
         </div>
 
         <!-- Nút xác nhận thanh toán -->
-        <!-- Nút xác nhận thanh toán -->
-<div class="mt-6">
-  <button id="btnThanhToan" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition">
-    ✅ Xác nhận thanh toán
-  </button>
-</div>
+        <div class="mt-6">
+          <button id="btnThanhToan" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition">
+            ✅ Xác nhận thanh toán
+          </button>
+        </div>
 
-<!-- Chọn phương thức thanh toán -->
-<div id="chonPTTT" class="hidden mt-6 text-center">
-  <p class="text-gray-700 mb-3 font-semibold">Chọn phương thức thanh toán:</p>
-  <div class="flex justify-center gap-4 flex-wrap">
-    <button id="btnVietQR" class="bg-red-500 text-white px-5 py-2 rounded-full hover:bg-red-600 transition">
-      📱 Quét mã VietQR
-    </button>
-    <button id="btnMomo" class="bg-pink-500 text-white px-5 py-2 rounded-full hover:bg-pink-600 transition">
-      💰 Thanh toán MOMO
-    </button>
-  </div>
-</div>
+        <!-- Chọn phương thức thanh toán -->
+        <div id="chonPTTT" class="hidden mt-6 text-center">
+          <p class="text-gray-700 mb-3 font-semibold">Chọn phương thức thanh toán:</p>
+          <div class="flex justify-center gap-4 flex-wrap">
+            <button id="btnVietQR" class="bg-red-500 text-white px-5 py-2 rounded-full hover:bg-red-600 transition">
+              📱 Quét mã VietQR
+            </button>
+            <button id="btnMomo" class="bg-pink-500 text-white px-5 py-2 rounded-full hover:bg-pink-600 transition">
+              💰 Thanh toán MOMO
+            </button>
+          </div>
+        </div>
 
-<!-- QR Thanh toán VietQR -->
-<div id="vietqrSection" class="mt-6 text-center hidden">
-  <p class="text-gray-700 mb-2">📱 Quét mã VietQR để thanh toán:</p>
-  <img src="<?= $vietqr_url ?>" alt="VietQR Thanh toán" class="mx-auto w-64 rounded-lg shadow-md border">
-  <p class="mt-2 text-sm text-gray-500">
-    Ngân hàng: <b>Agribank</b><br>
-    STK: <b>710 420 5318045</b><br>
-    Tên TK: <b>KhoaHocOnline</b><br>
-    Nội dung: <b><?= htmlspecialchars($description) ?></b>
-  </p>
-  <div class="mt-4">
-    <a href="checkout.php" class="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition">
-      ✅ Tôi đã chuyển khoản xong
-    </a>
-  </div>
-</div>
-
+        <!-- QR Thanh toán VietQR -->
+        <div id="vietqrSection" class="mt-6 text-center hidden">
+          <p class="text-gray-700 mb-2">📱 Quét mã VietQR để thanh toán:</p>
+          <img src="<?= $vietqr_url ?>" alt="VietQR Thanh toán" class="mx-auto w-64 rounded-lg shadow-md border">
+          <p class="mt-2 text-sm text-gray-500">
+            Ngân hàng: <b>Agribank</b><br>
+            STK: <b>710 420 5318045</b><br>
+            Tên TK: <b>KhoaHocOnline</b><br>
+            Nội dung: <b><?= htmlspecialchars($description) ?></b>
+          </p>
+          <div class="mt-4">
+            <a href="checkout.php" class="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition">
+              ✅ Tôi đã chuyển khoản xong
+            </a>
+          </div>
+        </div>
 
       <?php else: ?>
         <p class="text-gray-600">
@@ -139,59 +137,99 @@ $vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.
     </section>
   </main>
 
- <script>
-  const btnThanhToan = document.getElementById("btnThanhToan");
-  const chonPTTT = document.getElementById("chonPTTT");
-  const vietqrSection = document.getElementById("vietqrSection");
-  const btnVietQR = document.getElementById("btnVietQR");
-  const btnMomo = document.getElementById("btnMomo");
+  <script>
+    const btnThanhToan = document.getElementById("btnThanhToan");
+    const chonPTTT = document.getElementById("chonPTTT");
+    const vietqrSection = document.getElementById("vietqrSection");
+    const btnVietQR = document.getElementById("btnVietQR");
+    const btnMomo = document.getElementById("btnMomo");
 
-  // Khi nhấn "Xác nhận thanh toán"
-  btnThanhToan?.addEventListener("click", function() {
-    btnThanhToan.classList.add("hidden");
-    chonPTTT.classList.remove("hidden");
-  });
+    // Khi nhấn "Xác nhận thanh toán" - Kiểm tra thông tin user trước
+    btnThanhToan?.addEventListener("click", async function() {
+      try {
+        const response = await fetch('check_user_info.php', {
+          method: 'GET', // Hoặc POST nếu cần
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        const data = await response.json();
 
-  // Khi chọn VietQR
-  btnVietQR?.addEventListener("click", function() {
-    chonPTTT.classList.add("hidden");
-    vietqrSection.classList.remove("hidden");
-  });
-
-  // Khi chọn MOMO
-  btnMomo?.addEventListener("click", function() {
-    window.location.href = "momo_payment.php?amount=<?= $total ?>&user=<?= $user_id ?>";
-  });
-</script>
-<script src="http://localhost:3001/socket.io/socket.io.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-  const userId = <?= $user_id ?>;
-  const socket = io("http://localhost:3001");
-
-  socket.on("connect", () => {
-      socket.emit("register_user", userId);  // ĐÚNG EVENT NAME
-      console.log("Connected as user:", userId);
-  });
-
-  // Lắng nghe sự kiện do realtime server phát ra khi thanh toán thành công
-  // Server hiện emit event tên "payment_success" với payload { message }
-  socket.on("payment_success", (data) => {
-    Swal.fire({
-        title: '🎉 Thanh toán thành công!',
-        text: data.message || 'Đơn hàng đã được duyệt.',
-        icon: 'success',        // success, error, warning, info, question
-        confirmButtonText: 'OK'
-    }).then(() => {
-        // Refresh trang sau khi người dùng nhấn OK
-        window.location.reload();
+        if (data.status === 'complete') {
+          // Thông tin đầy đủ, hiển thị phương thức thanh toán
+          btnThanhToan.classList.add("hidden");
+          chonPTTT.classList.remove("hidden");
+        } else if (data.status === 'incomplete') {
+          // Thông tin chưa đầy đủ, cảnh báo và redirect đến update
+          Swal.fire({
+            title: '⚠️ Thông tin chưa đầy đủ!',
+            text: 'Vui lòng cập nhật đầy đủ họ tên, số điện thoại và địa chỉ trước khi thanh toán.',
+            icon: 'warning',
+            confirmButtonText: 'Cập nhật ngay',
+            allowOutsideClick: false
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = '/page/profile/update.php?redirect=cart';
+            }
+          });
+        } else {
+          // Lỗi khác, ví dụ not_logged_in
+          Swal.fire({
+            title: 'Lỗi!',
+            text: 'Vui lòng đăng nhập lại.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            window.location.href = '/page/login/login.php';
+          });
+        }
+      } catch (error) {
+        console.error('Lỗi kiểm tra thông tin:', error);
+        Swal.fire({
+          title: 'Lỗi kết nối!',
+          text: 'Không thể kiểm tra thông tin. Vui lòng thử lại.',
+          icon: 'error'
+        });
+      }
     });
-});
 
+    // Khi chọn VietQR
+    btnVietQR?.addEventListener("click", function() {
+      chonPTTT.classList.add("hidden");
+      vietqrSection.classList.remove("hidden");
+    });
 
-</script>
+    // Khi chọn MOMO
+    btnMomo?.addEventListener("click", function() {
+      window.location.href = "momo_payment.php?amount=<?= $total ?>&user=<?= $user_id ?>";
+    });
+  </script>
+  <script src="http://localhost:3001/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+  <script>
+    const userId = <?= $user_id ?>;
+    const socket = io("http://localhost:3001");
+
+    socket.on("connect", () => {
+        socket.emit("register_user", userId);  // ĐÚNG EVENT NAME
+        console.log("Connected as user:", userId);
+    });
+
+    // Lắng nghe sự kiện do realtime server phát ra khi thanh toán thành công
+    // Server hiện emit event tên "payment_success" với payload { message }
+    socket.on("payment_success", (data) => {
+      Swal.fire({
+          title: '🎉 Thanh toán thành công!',
+          text: data.message || 'Đơn hàng đã được duyệt.',
+          icon: 'success',        // success, error, warning, info, question
+          confirmButtonText: 'OK'
+      }).then(() => {
+          // Refresh trang sau khi người dùng nhấn OK
+          window.location.reload();
+      });
+    });
+  </script>
 
 </body>
 </html>

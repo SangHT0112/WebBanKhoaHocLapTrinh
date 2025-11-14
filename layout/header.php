@@ -47,6 +47,7 @@ if (session_status() === PHP_SESSION_NONE) {
             <div class="absolute hidden group-hover:flex flex-col top-12 right-0 bg-white text-black rounded-lg shadow-lg w-40 py-2">
                 <a href="/page/profile/profile.php" class="px-4 py-2 hover:bg-gray-100">Trang cá nhân</a>
                 <a href="/page/orders/orders.php" class="px-4 py-2 hover:bg-gray-100">Đơn hàng</a>
+                <a href="/page/profile/update.php" class="px-4 py-2 hover:bg-gray-100">Cập nhật thông tin</a>
                 <a href="/page/logout/logout.php" class="px-4 py-2 hover:bg-red-100 text-red-600">Đăng xuất</a>
             </div>
         </div>

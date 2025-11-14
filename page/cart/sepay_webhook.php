@@ -13,14 +13,14 @@ if (!$data || !isset($data["description"])) {
     exit;
 }
 
-// Ghi log để kiểm tra
+// Ghi log
 file_put_contents("sepay_log.txt", date("Y-m-d H:i:s") . " - " . $raw . "\n", FILE_APPEND);
 
 // Lấy thông tin từ webhook
 $description = trim($data["description"]);
 $amount = isset($data["transferAmount"]) ? (float)$data["transferAmount"] : 0;
 
-// Tìm user_id trong nội dung
+// Tìm user_id
 if (preg_match("/user\s+(\d+)/i", $description, $matches)) {
     $user_id = (int)$matches[1];
 } else {
@@ -29,9 +29,9 @@ if (preg_match("/user\s+(\d+)/i", $description, $matches)) {
     exit;
 }
 
-// Kiểm tra xem có giỏ hàng (cart) cho user không
+// Lấy giỏ hàng
 $stmt = $conn->prepare("
-    SELECT c.id, c.course_id, c.quantity, cs.gia AS price
+    SELECT c.course_id, c.quantity, cs.gia AS price
     FROM carts c
     JOIN courses cs ON cs.id = c.course_id
     WHERE c.user_id = ?
@@ -39,6 +39,7 @@ $stmt = $conn->prepare("
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
+
 $cart_items = [];
 $calculated_total = 0;
 
@@ -48,7 +49,7 @@ if ($result->num_rows > 0) {
         $calculated_total += $row['price'] * $row['quantity'];
     }
 
-    // Kiểm tra số tiền chuyển khoản có khớp với total cart không (tolerate 1% error cho phí ngân hàng)
+    // Kiểm tra số tiền
     $tolerance = 0.01; // 1%
     if (abs($amount - $calculated_total) > ($calculated_total * $tolerance)) {
         file_put_contents("sepay_log.txt", "Số tiền không khớp: Paid $amount, Expected $calculated_total\n", FILE_APPEND);
@@ -61,29 +62,61 @@ if ($result->num_rows > 0) {
         exit;
     }
 
-    // Tạo đơn hàng mới từ cart (trạng thái 'đã duyệt' ngay lập tức)
-    $insert = $conn->prepare("
-        INSERT INTO orders (user_id, tong_tien, trang_thai, ngay_tao)
-        VALUES (?, ?, 'đã duyệt', NOW())
+    // Lấy thông tin user
+    $userQuery = $conn->prepare("
+        SELECT username, email, phone, address 
+        FROM users 
+        WHERE id = ?
     ");
-    $insert->bind_param("id", $user_id, $calculated_total);
-    $insert->execute();
-    $order_id = $conn->insert_id; // Lấy ID đơn hàng mới
+    $userQuery->bind_param("i", $user_id);
+    $userQuery->execute();
+    $userInfo = $userQuery->get_result()->fetch_assoc();
 
-    // Optional: Lưu chi tiết items vào order_details nếu có bảng này
-    // Giả sử có bảng order_details (order_id, course_id, quantity, price)
-    // foreach ($cart_items as $item) {
-    //     $detail_insert = $conn->prepare("INSERT INTO order_details (order_id, course_id, quantity, price) VALUES (?, ?, ?, ?)");
-    //     $detail_insert->bind_param("iiid", $order_id, $item['course_id'], $item['quantity'], $item['price']);
-    //     $detail_insert->execute();
-    // }
+    $fullname = $userInfo['username'];
+    $email = $userInfo['email'];
+    $phone = $userInfo['phone'];
+    $address = $userInfo['address'];
 
-    // Xóa giỏ hàng sau khi tạo order
-    $delete = $conn->prepare("DELETE FROM carts WHERE user_id = ?");
-    $delete->bind_param("i", $user_id);
-    $delete->execute();
+    // === TẠO ĐƠN HÀNG (orders) ===
+    $insertOrder = $conn->prepare("
+        INSERT INTO orders (user_id, fullname, email, phone, address, tong_tien, trang_thai, ngay_tao)
+        VALUES (?, ?, ?, ?, ?, ?, 'đã duyệt', NOW())
+    ");
+    $insertOrder->bind_param(
+        "issssd",
+        $user_id,
+        $fullname,
+        $email,
+        $phone,
+        $address,
+        $calculated_total
+    );
+    $insertOrder->execute();
+    $order_id = $conn->insert_id;
 
-    // 🔥🔥🔥 Gửi thông báo realtime đến Node server
+    // === THÊM TỪNG ITEM VÀO order_items ===
+    $insertItem = $conn->prepare("
+        INSERT INTO order_items (order_id, course_id, so_luong, don_gia)
+        VALUES (?, ?, ?, ?)
+    ");
+
+    foreach ($cart_items as $item) {
+        $insertItem->bind_param(
+            "iiid",
+            $order_id,
+            $item['course_id'],
+            $item['quantity'],
+            $item['price']
+        );
+        $insertItem->execute();
+    }
+
+    // Xóa giỏ hàng
+    $deleteCart = $conn->prepare("DELETE FROM carts WHERE user_id = ?");
+    $deleteCart->bind_param("i", $user_id);
+    $deleteCart->execute();
+
+    // Gửi notify realtime
     $payload = json_encode([
         "user_id" => $user_id,
         "message" => "Thanh toán thành công! Đơn hàng #" . $order_id . " đã được duyệt."
@@ -98,15 +131,13 @@ if ($result->num_rows > 0) {
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    // Log CURL nếu fail
     if ($http_code !== 200) {
         file_put_contents("sepay_log.txt", "Notify fail: HTTP $http_code, Response: $curl_response\n", FILE_APPEND);
     }
-    // 🔥🔥🔥 END realtime
 
     echo json_encode([
         "status" => "success",
-        "message" => "Đơn hàng đã được tạo và duyệt tự động từ giỏ hàng",
+        "message" => "Đơn hàng đã được tạo và duyệt tự động",
         "order_id" => $order_id,
         "user_id" => $user_id,
         "total" => $calculated_total
