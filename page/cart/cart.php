@@ -31,8 +31,8 @@ while ($row = $result->fetch_assoc()) {
 }
 
 // Cấu hình VietQR
-$bank_id = "agribank";
-$account_no = "7104205318045";
+$bank_id = "KLB";
+$account_no = "101499100004323939";
 $account_name = "KhoaHocOnline";
 $template = "compact2";
 $description = "Thanh toan khoa hoc user " . $user_id;
@@ -162,6 +162,34 @@ $vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.
   btnMomo?.addEventListener("click", function() {
     window.location.href = "momo_payment.php?amount=<?= $total ?>&user=<?= $user_id ?>";
   });
+</script>
+<script src="http://localhost:3001/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  const userId = <?= $user_id ?>;
+  const socket = io("http://localhost:3001");
+
+  socket.on("connect", () => {
+      socket.emit("register_user", userId);  // ĐÚNG EVENT NAME
+      console.log("Connected as user:", userId);
+  });
+
+  // Lắng nghe sự kiện do realtime server phát ra khi thanh toán thành công
+  // Server hiện emit event tên "payment_success" với payload { message }
+  socket.on("payment_success", (data) => {
+    Swal.fire({
+        title: '🎉 Thanh toán thành công!',
+        text: data.message || 'Đơn hàng đã được duyệt.',
+        icon: 'success',        // success, error, warning, info, question
+        confirmButtonText: 'OK'
+    }).then(() => {
+        // Refresh trang sau khi người dùng nhấn OK
+        window.location.reload();
+    });
+});
+
+
 </script>
 
 

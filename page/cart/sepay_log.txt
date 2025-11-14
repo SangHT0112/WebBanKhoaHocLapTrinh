@@ -1,0 +1,26 @@
+2025-11-14 04:57:48 - {"gateway":"KienLongBank","transactionDate":"2025-11-14 10:57:47","accountNumber":"0915131493","subAccount":"101499100004323939","code":null,"content":"[101499100004323939.0915131493] 810972 KLB;101499100004323939;Thanh toan khoa hoc user 1","transferType":"in","description":"BankAPINotify [101499100004323939.0915131493] 810972 KLB;101499100004323939;Thanh toan khoa hoc user 1","transferAmount":2000,"referenceCode":"1fd842d9-876d-45f0-a3b0-8e85787e1276","accumulated":0,"id":30494805}
+2025-11-14 04:59:15 - {"gateway":"KienLongBank","transactionDate":"2025-11-14 10:59:14","accountNumber":"0915131493","subAccount":"101499100004323939","code":null,"content":"[101499100004323939.0915131493] 458087 KLB;101499100004323939;Thanh toan khoa hoc user 1","transferType":"in","description":"BankAPINotify [101499100004323939.0915131493] 458087 KLB;101499100004323939;Thanh toan khoa hoc user 1","transferAmount":2000,"referenceCode":"20207a15-e155-4f9f-bfe0-b3ac1485a544","accumulated":0,"id":30494965}
+2025-11-14 05:03:38 - {
+    "gateway": "KienLongBank",
+    "transactionDate": "2025-11-14 10:57:47",
+    "accountNumber": "0915131493",
+    "subAccount": "101499100004323939",
+    "description": "[101499100004323939.0915131493] 810972 KLB;101499100004323939;Thanh toan khoa hoc user 1",
+    "transferAmount": 2000,
+    "referenceCode": "1fd842d9-876d-45f0-a3b0-8e85787e1276"
+}
+
+2025-11-14 05:04:43 - {
+    "gateway": "KienLongBank",
+    "transactionDate": "2025-11-14 10:57:47",
+    "accountNumber": "0915131493",
+    "subAccount": "101499100004323939",
+    "description": "[101499100004323939.0915131493] 810972 KLB;101499100004323939;Thanh toan khoa hoc user 1",
+    "transferAmount": 2000,
+    "referenceCode": "1fd842d9-876d-45f0-a3b0-8e85787e1276"
+}
+
+2025-11-14 05:05:38 - {"gateway":"KienLongBank","transactionDate":"2025-11-14 11:05:36","accountNumber":"0915131493","subAccount":"101499100004323939","code":null,"content":"[101499100004323939.0915131493] 147511 KLB;101499100004323939;Thanh toan khoa hoc user 1","transferType":"in","description":"BankAPINotify [101499100004323939.0915131493] 147511 KLB;101499100004323939;Thanh toan khoa hoc user 1","transferAmount":2000,"referenceCode":"15224461-8e5d-4e83-8f23-7fde46a20192","accumulated":0,"id":30495770}
+2025-11-14 07:20:26 - {"gateway":"KienLongBank","transactionDate":"2025-11-14 13:20:25","accountNumber":"0915131493","subAccount":"101499100004323939","code":null,"content":"[101499100004323939.0915131493] 329310 KLB;101499100004323939;Thanh toan khoa hoc user 1","transferType":"in","description":"BankAPINotify [101499100004323939.0915131493] 329310 KLB;101499100004323939;Thanh toan khoa hoc user 1","transferAmount":2000,"referenceCode":"e5f6bae5-e41e-4662-b712-3e375cecde73","accumulated":0,"id":30515606}
+Notify fail: HTTP 0, Response: 
+2025-11-14 07:21:43 - {"gateway":"KienLongBank","transactionDate":"2025-11-14 13:21:42","accountNumber":"0915131493","subAccount":"101499100004323939","code":null,"content":"[101499100004323939.0915131493] 755391 KLB;101499100004323939;Thanh toan khoa hoc user 1","transferType":"in","description":"BankAPINotify [101499100004323939.0915131493] 755391 KLB;101499100004323939;Thanh toan khoa hoc user 1","transferAmount":2000,"referenceCode":"4217a5be-657d-4c2a-b61e-76a8a41b2ade","accumulated":0,"id":30515740}
