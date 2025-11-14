@@ -1,5 +1,5 @@
 <?php
-// momo.php — Giao diện thanh toán và xử lý gửi request tới MOMO
+session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $amount = $_POST['amount'];
@@ -9,23 +9,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 🔹 Cấu hình MOMO sandbox
     $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
-    $partnerCode = "MOMO"; // MOMO sandbox mặc định
+    $partnerCode = "MOMO";
     $accessKey = "F8BBA842ECF85";
     $secretKey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
 
-    $orderId = time(); // Mã đơn hàng duy nhất
+    $orderId = time();
     $orderInfo = "Thanh toán khóa học cho user $user";
-    $redirectUrl = "http://localhost/page/cart/checkout.php"; // Đường dẫn sau khi thanh toán xong
-    $ipnUrl = "http://localhost/page/cart/checkout_ipn.php"; // Webhook nhận callback từ MOMO
+    $redirectUrl = "http://localhost/page/cart/checkout.php";
+    $ipnUrl = "http://localhost/page/cart/checkout_ipn.php";
     $extraData = base64_encode(json_encode(["user" => $user, "email" => $email]));
     $requestId = time() . "";
     $requestType = "captureWallet";
 
-    // 🔹 Tạo chuỗi raw hash để ký
+    // 🔹 Tạo chữ ký
     $rawHash = "accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType";
     $signature = hash_hmac("sha256", $rawHash, $secretKey);
 
-    // 🔹 Dữ liệu gửi đi
     $data = [
         'partnerCode' => $partnerCode,
         'partnerName' => "KhoaHocOnline",
@@ -42,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'signature' => $signature
     ];
 
-    // 🔹 Gửi đến MOMO
     $ch = curl_init($endpoint);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -64,8 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// ===== GET DATA =====
 $amount = $_GET['amount'] ?? 0;
-$user = $_GET['user'] ?? 0;
+$user = $_SESSION['username'] ?? 'Khách';
+$emailSession = $_SESSION['email'] ?? '';
 ?>
 
 <!DOCTYPE html>
@@ -82,13 +82,15 @@ $user = $_GET['user'] ?? 0;
 
     <div class="mb-4">
       <label class="block text-gray-700 mb-1">Tên khách hàng</label>
-      <input type="text" name="name" placeholder="Nhập tên của bạn"
+      <input type="text" name="name"
+             value="<?= htmlspecialchars($user) ?>"
              class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-pink-400" required>
     </div>
 
     <div class="mb-4">
       <label class="block text-gray-700 mb-1">Email</label>
-      <input type="email" name="email" placeholder="Nhập email (tùy chọn)"
+      <input type="email" name="email"
+             value="<?= htmlspecialchars($emailSession) ?>"
              class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-pink-400">
     </div>
 
@@ -96,8 +98,9 @@ $user = $_GET['user'] ?? 0;
       <label class="block text-gray-700 mb-1">Số tiền thanh toán</label>
       <input type="text" value="<?= number_format($amount, 0, ',', '.') ?> ₫" disabled
              class="w-full border rounded-lg p-2 bg-gray-50 text-green-600 font-semibold">
+
       <input type="hidden" name="amount" value="<?= $amount ?>">
-      <input type="hidden" name="user" value="<?= $user ?>">
+      <input type="hidden" name="user" value="<?= htmlspecialchars($user) ?>">
     </div>
 
     <button type="submit"
