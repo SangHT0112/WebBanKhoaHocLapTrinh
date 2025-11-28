@@ -10,6 +10,7 @@ $courses = $controller->model->getAll();
 <html lang="vi">
 <head>
   <?php include __DIR__ . '/layout/head.php'; ?>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
   <header>
@@ -46,6 +47,8 @@ $courses = $controller->model->getAll();
   <footer id="contact">
     <p>&copy; 2025 Code Cùng Sang. Tất cả quyền được bảo lưu. | Liên hệ: huynhtsang2004@gmail.com</p>
   </footer>
+
+  <?php include __DIR__ . '/layout/chat-ai.php'; ?>
 
   <script>
     function goToDetail(id) {
