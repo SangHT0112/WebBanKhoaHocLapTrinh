@@ -117,6 +117,27 @@ if ($result->num_rows > 0) {
         $insertItem->execute();
     }
 
+    // === INSERT ENROLLMENTS CHO TỪNG KHÓA HỌC (MỚI) ===
+    $insertEnroll = $conn->prepare("
+        INSERT INTO enrollments (ma_khoa_hoc, ma_nguoi_dung, ngay_dang_ky, trang_thai, tien_do)
+        VALUES (?, ?, NOW(), 'dang_hoc', 0.00)
+    ");
+    $updateHocVien = $conn->prepare("
+        UPDATE courses SET so_hoc_vien = so_hoc_vien + ? WHERE id = ?
+    ");
+
+    foreach ($cart_items as $item) {
+        // Insert enrollment (giả sử quantity=1 cho mỗi khóa học, nếu mua nhiều thì loop quantity lần)
+        for ($i = 0; $i < $item['quantity']; $i++) {
+            $insertEnroll->bind_param("ii", $item['course_id'], $user_id);
+            $insertEnroll->execute();
+        }
+        
+        // Cập nhật số học viên (thêm quantity)
+        $updateHocVien->bind_param("ii", $item['quantity'], $item['course_id']);
+        $updateHocVien->execute();
+    }
+
     // Xóa giỏ hàng
     $deleteCart = $conn->prepare("DELETE FROM carts WHERE user_id = ?");
     $deleteCart->bind_param("i", $user_id);
