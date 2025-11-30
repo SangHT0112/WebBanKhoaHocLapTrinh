@@ -1,0 +1,158 @@
+# Schema Description for Webbankhoahoc Database
+# This is a structured description of the database schema for easy parsing by AI models like Gemini.
+# Focus on key tables for courses and related entities. Use English aliases in parentheses for column names to improve understanding.
+# Example queries are provided for common tasks like fetching course price by name or category.
+
+## Main Tables
+
+### Table: courses (Core table for courses - khóa học)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique course ID
+- ten_khoa_hoc (course_name): VARCHAR(255) NOT NULL - Course title (e.g., "Lộ Trình PHP Master")
+- mo_ta (description): TEXT - Short description of the course
+- gia (price): DECIMAL(10,2) NOT NULL - Course price in VND (e.g., 1500000.00)
+- so_hoc_vien (student_count): INT DEFAULT 0 - Number of enrolled students
+- so_gio_hoc (total_hours): INT DEFAULT 0 - Total learning hours
+- danh_muc (category_slug): VARCHAR(100) - Category slug (e.g., "PHP", "React", "C++")
+- bieu_tuong (icon): VARCHAR(10) - Icon symbol (e.g., emoji)
+- anh_dai_dien (thumbnail): VARCHAR(255) - Thumbnail image path
+- ngay_tao (created_at): DATETIME DEFAULT CURRENT_TIMESTAMP - Creation timestamp
+- ngay_cap_nhat (updated_at): DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP - Update timestamp
+- danh_muc_id (category_id): INT - Foreign key to categories.id
+- FOREIGN KEY (danh_muc_id) REFERENCES categories(id)
+
+**Example SQL for price query:** SELECT ten_khoa_hoc AS course_name, gia AS price FROM courses WHERE ten_khoa_hoc LIKE CONCAT('%', ?, '%') OR danh_muc = ?;  (Use LIKE for fuzzy name matching, exact for category)
+
+### Table: categories (Categories - danh mục khóa học)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique category ID
+- ten_danh_muc (name): VARCHAR(100) NOT NULL - Category name (e.g., "PHP", "React")
+- mo_ta (description): TEXT - Category description
+- ngay_tao (created_at): DATETIME DEFAULT CURRENT_TIMESTAMP - Creation timestamp
+- ngay_cap_nhat (updated_at): DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP - Update timestamp
+
+**Example SQL:** SELECT ten_danh_muc AS name FROM categories WHERE ten_danh_muc = ?;  (For category-specific courses: JOIN courses ON courses.danh_muc_id = categories.id)
+
+### Table: course_details (Course details - chi tiết khóa học)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique detail ID
+- ma_khoa_hoc (course_id): INT NOT NULL UNIQUE - Foreign key to courses.id
+- mo_ta_day_du (full_description): TEXT NOT NULL - Full course description
+- chuong_trinh_hoc (curriculum): TEXT NOT NULL - Curriculum outline
+- ten_giang_vien (instructor_name): VARCHAR(255) NOT NULL - Instructor name
+- gioi_thieu_giang_vien (instructor_intro): TEXT NOT NULL - Instructor introduction
+- loi_ich (benefits): TEXT NOT NULL - Benefits of the course
+- ngay_tao (created_at): TIMESTAMP DEFAULT CURRENT_TIMESTAMP - Creation timestamp
+- ngay_cap_nhat (updated_at): TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP - Update timestamp
+- FOREIGN KEY (ma_khoa_hoc) REFERENCES courses(id) ON DELETE CASCADE
+
+**Example SQL:** SELECT ten_giang_vien AS instructor_name, loi_ich AS benefits FROM course_details WHERE ma_khoa_hoc = ?;
+
+### Table: instructors (Instructors - giảng viên)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique instructor ID
+- ho_ten (full_name): VARCHAR(255) - Full name
+- mo_ta (bio): TEXT - Biography
+- anh_dai_dien (avatar): VARCHAR(255) - Avatar image path
+- kinh_nghiem (experience_years): INT - Years of experience
+- email: VARCHAR(255) - Email
+- lien_he (contact): VARCHAR(50) - Contact info
+
+### Table: course_instructors (Course-Instructor Junction - liên kết khóa học và giảng viên)
+- course_id: INT NOT NULL - Foreign key to courses.id
+- instructor_id: INT NOT NULL - Foreign key to instructors.id
+- PRIMARY KEY (course_id, instructor_id)
+- FOREIGN KEY (course_id) REFERENCES courses(id)
+- FOREIGN KEY (instructor_id) REFERENCES instructors(id)
+
+**Example SQL:** SELECT i.ho_ten AS instructor_name FROM course_instructors ci JOIN instructors i ON ci.instructor_id = i.id WHERE ci.course_id = ?;
+
+### Table: modules (Modules - mô-đun khóa học)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique module ID
+- course_id: INT - Foreign key to courses.id
+- ten_module (name): VARCHAR(255) - Module title
+- mo_ta (description): TEXT - Module description
+- thu_tu (order): INT - Display order
+- FOREIGN KEY (course_id) REFERENCES courses(id)
+
+### Table: lessons (Lessons - bài học)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique lesson ID
+- module_id: INT - Foreign key to modules.id
+- tieu_de (title): VARCHAR(255) - Lesson title
+- video_url: VARCHAR(255) - Video URL
+- thoi_luong (duration_minutes): INT - Duration in minutes
+- thu_tu (order): INT - Display order
+- FOREIGN KEY (module_id) REFERENCES modules(id)
+
+**Example SQL for course outline:** SELECT m.ten_module AS module_name, l.tieu_de AS lesson_title FROM modules m JOIN lessons l ON m.id = l.module_id WHERE m.course_id = ? ORDER BY m.thu_tu, l.thu_tu;
+
+### Table: users (Users - người dùng)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique user ID
+- username: VARCHAR(100) NOT NULL - Username
+- fullname: VARCHAR(150) - Full name
+- email: VARCHAR(255) NOT NULL UNIQUE - Email
+- phone: VARCHAR(20) - Phone
+- address: VARCHAR(255) - Address
+- password: VARCHAR(255) NOT NULL - Hashed password
+- role: ENUM('admin','user') DEFAULT 'user' - User role
+- avatar: VARCHAR(255) DEFAULT 'uploads/avatars/default.png' - Avatar path
+- created_at: DATETIME DEFAULT CURRENT_TIMESTAMP - Creation timestamp
+- updated_at: DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP - Update timestamp
+
+### Table: enrollments (Enrollments - đăng ký khóa học)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique enrollment ID
+- user_id: INT - Foreign key to users.id
+- course_id: INT - Foreign key to courses.id
+- ngay_dang_ky (enroll_date): DATETIME DEFAULT CURRENT_TIMESTAMP - Enrollment date
+- tien_do (progress): DECIMAL(5,2) DEFAULT 0.00 - Progress percentage
+- FOREIGN KEY (user_id) REFERENCES users(id)
+- FOREIGN KEY (course_id) REFERENCES courses(id)
+
+**Example SQL:** SELECT u.fullname AS student_name, c.ten_khoa_hoc AS course_name, e.tien_do AS progress FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id WHERE e.user_id = ?;
+
+### Table: carts (Shopping Cart - giỏ hàng)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique cart ID
+- user_id: INT NOT NULL - Foreign key to users.id
+- course_id: INT NOT NULL - Foreign key to courses.id
+- quantity: INT DEFAULT 1 - Quantity (usually 1 for courses)
+- created_at: DATETIME DEFAULT CURRENT_TIMESTAMP - Creation timestamp
+- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+
+### Table: orders (Orders - đơn hàng)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique order ID
+- user_id: INT NOT NULL - Foreign key to users.id
+- fullname: VARCHAR(150) NOT NULL - Customer full name
+- email: VARCHAR(255) NOT NULL - Customer email
+- phone: VARCHAR(20) NOT NULL - Customer phone
+- address: VARCHAR(255) NOT NULL - Shipping address
+- tong_tien (total_amount): DECIMAL(10,2) NOT NULL - Total order amount
+- trang_thai (status): ENUM('chờ duyệt','đã duyệt','đã hủy') DEFAULT 'chờ duyệt' - Order status
+- ngay_tao (created_at): DATETIME DEFAULT CURRENT_TIMESTAMP - Creation timestamp
+- FOREIGN KEY (user_id) REFERENCES users(id)
+
+### Table: order_items (Order Items - chi tiết đơn hàng)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique item ID
+- order_id: INT NOT NULL - Foreign key to orders.id
+- course_id: INT NOT NULL - Foreign key to courses.id
+- so_luong (quantity): INT DEFAULT 1 - Quantity
+- don_gia (unit_price): DECIMAL(10,2) NOT NULL - Unit price at purchase
+- FOREIGN KEY (order_id) REFERENCES orders(id)
+- FOREIGN KEY (course_id) REFERENCES courses(id)
+
+**Example SQL for order summary:** SELECT oi.don_gia AS unit_price, c.ten_khoa_hoc AS course_name FROM order_items oi JOIN courses c ON oi.course_id = c.id WHERE oi.order_id = ?;
+
+### Table: reviews (Reviews - đánh giá)
+- id: INT PRIMARY KEY AUTO_INCREMENT - Unique review ID
+- course_id: INT - Foreign key to courses.id
+- user_id: INT - Foreign key to users.id
+- rating: INT CHECK (rating BETWEEN 1 AND 5) - Star rating (1-5)
+- comment: TEXT - Review text
+- ngay_tao (created_at): DATETIME DEFAULT CURRENT_TIMESTAMP - Creation timestamp
+- FOREIGN KEY (course_id) REFERENCES courses(id)
+- FOREIGN KEY (user_id) REFERENCES users(id)
+
+**Example SQL:** SELECT AVG(rating) AS average_rating, COUNT(*) AS review_count FROM reviews WHERE course_id = ?;
+
+## General Notes for SQL Generation
+- Always use SELECT only for queries (no INSERT/UPDATE/DELETE).
+- Use placeholders ? for parameters to prevent injection.
+- For fuzzy searches on course names: LIKE CONCAT('%', ?, '%')
+- Common JOINs: courses LEFT JOIN categories ON courses.danh_muc_id = categories.id; courses LEFT JOIN course_details ON courses.id = course_details.ma_khoa_hoc
+- Focus on courses table for price/name queries; JOIN others only if needed (e.g., instructor via course_instructors).
+- Database charset: utf8mb4 for Vietnamese text support.
