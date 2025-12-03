@@ -49,11 +49,13 @@ $courses = $controller->model->getAll();
   </footer>
 
   <?php include __DIR__ . '/layout/chat-ai.php'; ?>
+  <?php include __DIR__ . '/layout/catalogue.php'; ?>
 
   <script>
     function goToDetail(id) {
       window.location.href = `course-detail.php?id=${id}`;
     }
   </script>
+  
 </body>
 </html>

@@ -34,23 +34,49 @@ if (session_status() === PHP_SESSION_NONE) {
     <!-- Auth -->
     <?php if (isset($_SESSION['id'])): ?>
         <!-- Đã đăng nhập -->
-        <div class="flex items-center gap-3 text-white relative group">
+        <div class="flex items-center gap-3 text-white relative" id="user-dropdown">
             
             <!-- Avatar -->
             <img src="/uploads/avatars/<?= $_SESSION['avatar'] ?? 'default.png' ?>"
-                 class="w-10 h-10 rounded-full border-2 border-yellow-400 object-cover cursor-pointer">
+                 class="w-10 h-10 rounded-full border-2 border-yellow-400 object-cover cursor-pointer" id="dropdown-toggle">
 
             <!-- Username -->
-            <span class="font-semibold cursor-pointer"><?= htmlspecialchars($_SESSION['username']) ?></span>
+            <span class="font-semibold cursor-pointer" id="dropdown-toggle"><?= htmlspecialchars($_SESSION['username']) ?></span>
+<button
+  class="fixed bottom-5 right-28 bg-gradient-to-r from-pink-500 to-rose-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-2xl z-[1000] hover:scale-110 transition-all"
+  onclick="openCatalogue()"
+  title="Hướng dẫn sử dụng">
+  <span class="text-2xl font-bold">?</span>
+</button>
 
+            
             <!-- Dropdown -->
-            <div class="absolute hidden group-hover:flex flex-col top-12 right-0 bg-white text-black rounded-lg shadow-lg w-40 py-2">
+            <div class="absolute hidden flex-col top-12 right-0 bg-white text-black rounded-lg shadow-lg w-40 py-2" id="dropdown-menu">
                 <a href="/page/profile/profile.php" class="px-4 py-2 hover:bg-gray-100">Trang cá nhân</a>
                 <a href="/page/orders/orders.php" class="px-4 py-2 hover:bg-gray-100">Đơn hàng</a>
                 <a href="/page/profile/update.php" class="px-4 py-2 hover:bg-gray-100">Cập nhật thông tin</a>
                 <a href="/page/logout/logout.php" class="px-4 py-2 hover:bg-red-100 text-red-600">Đăng xuất</a>
             </div>
         </div>
+
+        <script>
+            const toggle = document.querySelectorAll('#dropdown-toggle');
+            const menu = document.getElementById('dropdown-menu');
+
+            toggle.forEach(el => {
+                el.addEventListener('click', () => {
+                    menu.classList.toggle('hidden');
+                });
+            });
+
+            // Click ra ngoài thì đóng dropdown
+            document.addEventListener('click', (e) => {
+                const dropdown = document.getElementById('user-dropdown');
+                if (!dropdown.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+        </script>
 
     <?php else: ?>
         <!-- Chưa đăng nhập -->
