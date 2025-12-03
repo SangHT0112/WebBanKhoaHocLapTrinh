@@ -1,4 +1,6 @@
 <?php
+session_start();  // Bắt đầu session
+
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/models/CourseDetail.php';
 
@@ -8,11 +10,18 @@ $db = (new Database())->connect();
 // Lấy course_id từ URL
 $courseId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
+// Kiểm tra login (nếu chưa, redirect đến login)
+if (!isset($_SESSION['id'])) {
+    header("Location: /page/login/login.php");
+    exit;
+}
+$ma_nguoi_dung = $_SESSION['id'];  // Lấy user_id từ session
+
 // Khởi tạo model ChiTietKhoaHoc
 $chiTietKhoaHoc = new ChiTietKhoaHoc($db);
 
-// Lấy thông tin chi tiết khóa học
-$courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
+// Lấy thông tin chi tiết khóa học (truyền ma_nguoi_dung để kiểm tra enrollment)
+$courseDetail = $chiTietKhoaHoc->layMotKhoaHoc($courseId, $ma_nguoi_dung);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -20,9 +29,85 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
     <meta charset="UTF-8">
     <?php include __DIR__ . '/layout/head.php'; ?>
     <link rel="stylesheet" href="course-detail.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+    <style>
+        /* Thêm CSS cho accordion */
+        .curriculum-item {
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .curriculum-item-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .curriculum-item-header:hover {
+            background-color: #e9ecef;
+        }
+        .curriculum-item-header .toggle-icon {
+            font-size: 18px;
+            transition: transform 0.3s;
+        }
+        .curriculum-item-header.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+        .curriculum-item-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s;
+        }
+        .curriculum-item-content.active {
+            padding: 15px;
+            max-height: 1000px; /* Điều chỉnh theo nhu cầu */
+        }
+        .lessons-list {
+            list-style: none;
+            padding: 0;
+        }
+        .lesson-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .lesson-item:last-child {
+            border-bottom: none;
+        }
+        .lesson-type {
+            font-size: 12px;
+            color: #666;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+        }
+        .lesson-duration {
+            color: #999;
+        }
+        /* Thêm CSS cho nút bắt đầu học */
+        .start-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        .start-btn:hover {
+            background-color: #218838;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -46,9 +131,19 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
                             <span><?php echo htmlspecialchars($courseDetail['so_hoc_vien']); ?> học viên</span>
                             <span><?php echo htmlspecialchars($courseDetail['so_gio_hoc']); ?> giờ học</span>
                         </div>
-                        <button class="enroll-btn" onclick="enrollCourse(<?php echo $courseDetail['id']; ?>)">
-                            Đăng Ký Khóa Học
-                        </button>
+                        
+                        <!-- Nút đăng ký / bắt đầu học (có điều kiện dựa trên da_dang_ky từ model) -->
+                        <?php if (isset($courseDetail['da_dang_ky']) && $courseDetail['da_dang_ky']): ?>
+                            <a href="learn.php?course_id=<?php echo intval($courseId); ?>" class="start-btn">Bắt Đầu Khóa Học</a>
+                            <?php if (isset($courseDetail['tien_do'])): ?>
+                                <p style="margin-top: 10px; color: #666;">Tiến độ hiện tại: <?php echo number_format($courseDetail['tien_do'], 1); ?>%</p>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <button class="enroll-btn" onclick="enrollCourse(<?php echo $courseDetail['id']; ?>)">
+                                Đăng Ký Khóa Học
+                            </button>
+                        <?php endif; ?>
+                        
                         <a href="category.php" class="cta-button">Quay Lại Danh Mục</a>
 
                         <!-- Phần tổng quan lợi ích -->
@@ -69,23 +164,52 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
                             <?php endif; ?>
                         </div>
 
-                        <!-- Phần chương trình học -->
-                        <div class="curriculum-section">
-                          <h3>Chương Trình Học Chi Tiết</h3>
-                          <?php 
-                          $chuongTrinh = json_decode($courseDetail['chuong_trinh_hoc'], true);
-                          if ($chuongTrinh && is_array($chuongTrinh)):
-                          ?>
-                          <div class="curriculum-list">
-                              <?php foreach ($chuongTrinh as $module): ?>
-                                  <div class="curriculum-item">
-                                      <h4><?php echo htmlspecialchars($module['module'] ?? ''); ?> (<?php echo htmlspecialchars($module['duration'] ?? ''); ?>)</h4>
-                                      <p><?php echo htmlspecialchars($module['content'] ?? ''); ?></p>
-                                  </div>
-                              <?php endforeach; ?>
-                          </div>
-                          <?php endif; ?>
-                      </div>
+                       <div class="curriculum-section">
+                        <h3>Chương Trình Học</h3>
+
+                        <?php if (!empty($courseDetail['modules'])): ?>
+                            <div class="curriculum-list">
+                                <?php foreach ($courseDetail['modules'] as $module): ?>
+                                    <div class="curriculum-item">
+                                        <div class="curriculum-item-header">
+                                            <span>
+                                                <?php echo htmlspecialchars($module['module_name']); ?> 
+                                                (<?php echo htmlspecialchars($module['duration']); ?>)
+                                            </span>
+                                            <span class="toggle-icon">▼</span>
+                                        </div>
+
+                                        <div class="curriculum-item-content">
+                                            <p><?php echo htmlspecialchars($module['content']); ?></p>
+
+                                            <?php if (!empty($module['lessons'])): ?>
+                                            <ul class="lessons-list">
+                                                <?php foreach ($module['lessons'] as $lesson): ?>
+                                                    <li class="lesson-item">
+                                                        <span><?php echo htmlspecialchars($lesson['ten_bai_hoc']); ?></span>
+                                                        <span class="lesson-duration"><?php echo htmlspecialchars($lesson['thoi_luong']); ?></span>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <p>Chưa có chương trình học.</p>
+                        <?php endif; ?>
+                    </div>
+
+                    <script>
+                    document.querySelectorAll('.curriculum-item-header').forEach(header => {
+                        header.addEventListener('click', () => {
+                            header.classList.toggle('active');
+                            header.nextElementSibling.classList.toggle('active');
+                        });
+                    });
+                    </script>
+
 
                         <!-- Phần giảng viên -->
                         <div class="instructor-section">
@@ -106,10 +230,9 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
                 <h1 style="text-align: center; color: #666;">Không tìm thấy khóa học!</h1>
             <?php endif; ?>
         </div>
-
         <?php if ($courseDetail): ?>
         <div class="related-products">
-             <?php include __DIR__ . '/review.php'; ?>
+            <h2>Lộ Trình Liên Quan</h2>
             <div class="courses-grid">
                 <?php
                 // TODO: Implement related courses logic here
@@ -126,44 +249,27 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
 
     <script>
     function enrollCourse(id) {
-    const courseDetail = <?php echo json_encode($courseDetail); ?>;
+        // Lấy thông tin khóa học từ PHP
+        const courseDetail = <?php echo json_encode($courseDetail); ?>;
 
-    fetch('page/cart/add-to-cart.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `id=${courseDetail.ma_khoa_hoc}&name=${encodeURIComponent(courseDetail.ten_khoa_hoc)}&price=${encodeURIComponent(courseDetail.gia)}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'added') {
-            Swal.fire({
-                title: "🎉 Đã thêm vào giỏ hàng!",
-                html: `<b>${courseDetail.ten_khoa_hoc}</b> đã được thêm vào giỏ.`,
-                icon: "success",
-                confirmButtonText: "Đi đến giỏ hàng",
-                confirmButtonColor: "#3085d6"
-            }).then(() => {
+        // Gửi dữ liệu sang PHP để lưu session
+        fetch('page/cart/add-to-cart.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `id=${courseDetail.ma_khoa_hoc}&name=${encodeURIComponent(courseDetail.ten_khoa_hoc)}&price=${encodeURIComponent(courseDetail.gia)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'added') {
+                alert(`Đã thêm "${courseDetail.ten_khoa_hoc}" vào giỏ hàng!`);
                 window.location.href = "page/cart/cart.php";
-            });
-
-        } else if (data.status === 'exists') {
-            Swal.fire({
-                title: "⚠️ Khóa học đã tồn tại",
-                html: `Khóa học <b>${courseDetail.ten_khoa_hoc}</b> đã có trong giỏ.`,
-                icon: "warning",
-                confirmButtonText: "OK"
-            });
-
-        } else {
-            Swal.fire({
-                title: "❌ Lỗi!",
-                text: "Không thể thêm khóa học vào giỏ hàng.",
-                icon: "error",
-                confirmButtonText: "OK"
-            });
-        }
-    });
-}
+            } else if (data.status === 'exists') {
+                alert(`"${courseDetail.ten_khoa_hoc}" đã có trong giỏ hàng.`);
+            } else {
+                alert('Lỗi khi thêm khóa học!');
+            }
+        });
+    }
     // Copy mảng courses từ category.html
     const courses = [
       { id: 1, name: 'Lộ Trình PHP Master', price: '2.500.000 VNĐ', desc: 'Xây dựng web app mạnh mẽ với PHP, MySQL và Laravel.', icon: '🐘', students: '1.200', hours: '45', category: 'backend' },
@@ -180,175 +286,31 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
 
     const course = courses.find(c => c.id === courseId);
 
-    if (course) {
-      let detailedContent = '';
-      if (courseId === 1) { // Đặc biệt cho PHP Master
-        detailedContent = `
-          <div class="course-detail-box">
-            <div class="course-icon-big">${course.icon}</div>
-            <div class="course-info">
-              <h1>${course.name}</h1>
-              <p>${course.desc} <br><strong>Nội dung chi tiết:</strong> Khóa học được thiết kế dành cho người mới bắt đầu đến nâng cao, tập trung vào phát triển web backend thực tế. Với hơn 45 giờ video chất lượng HD, bài tập thực hành và dự án cuối khóa, bạn sẽ tự tin xây dựng ứng dụng web hoàn chỉnh.</p>
-              <div class="price">${course.price}</div>
-              <div class="stats">
-                <span>${course.students} học viên</span>
-                <span>${course.hours} giờ học</span>
-              </div>
-              <button class="enroll-btn" onclick="enrollCourse(${course.id})">Đăng Ký Khóa Học</button>
-              <a href="category.php" class="cta-button">Quay Lại Danh Mục</a>
-
-              <!-- Phần tổng quan lợi ích -->
-              <div class="course-overview">
-                <h3>Lợi Ích Khi Tham Gia</h3>
-                <ul>
-                  <li>Chứng chỉ hoàn thành từ Code Cùng Sang, được công nhận trong ngành IT.</li>
-                  <li>Hỗ trợ mentor 1:1 qua Discord và Zoom suốt khóa học.</li>
-                  <li>Truy cập lifetime vào tài liệu, code mẫu và cộng đồng alumni.</li>
-                  <li>Bảo hành hoàn tiền 100% nếu không hài lòng trong 30 ngày đầu.</li>
-                </ul>
-              </div>
-
-              <!-- Phần chương trình học -->
-              <div class="curriculum-section">
-                <h3>Chương Trình Học Chi Tiết</h3>
-                <div class="curriculum-list">
-                  <div class="curriculum-item">
-                    <h4>Module 1: PHP Cơ Bản (Tuần 1-2)</h4>
-                    <p>Giới thiệu PHP, syntax, biến, hàm, mảng. Xây dựng form xử lý đơn giản.</p>
-                  </div>
-                  <div class="curriculum-item">
-                    <h4>Module 2: Database với MySQL (Tuần 3-4)</h4>
-                    <p>Kết nối PDO, CRUD operations, SQL injection prevention. Dự án: Hệ thống quản lý user.</p>
-                  </div>
-                  <div class="curriculum-item">
-                    <h4>Module 3: OOP & Composer (Tuần 5-6)</h4>
-                    <p>Class, inheritance, namespaces. Quản lý package với Composer.</p>
-                  </div>
-                  <div class="curriculum-item">
-                    <h4>Module 4: Laravel Framework (Tuần 7-9)</h4>
-                    <p>Routing, MVC, Eloquent ORM, Authentication. Xây dựng API RESTful.</p>
-                  </div>
-                  <div class="curriculum-item">
-                    <h4>Module 5: Deploy & Best Practices (Tuần 10)</h4>
-                    <p>Deploy lên Heroku/AWS, security, performance optimization. Dự án cuối: E-commerce backend.</p>
-                </div>
-                </div>
-              </div>
-
-              <!-- Phần giảng viên -->
-              <div class="instructor-section">
-                <div class="instructor-avatar">NS</div>
-                <div class="instructor-info">
-                  <h4>Huỳnh Thanh Sang - Lead Instructor</h4>
-                  <p>5+ năm kinh nghiệm PHP/Laravel tại FPT Software. Đã đào tạo 500+ học viên, chia sẻ trên YouTube với 50k subs.</p>
-                </div>
-              </div>
-
-              <!-- Phần lợi ích nổi bật -->
-              <div class="benefits-section">
-                <div class="benefit-card">
-                  <i>🎯</i>
-                  <h4>Thực Hành 100%</h4>
-                  <p>Mọi module đều có dự án thực tế để áp dụng ngay.</p>
-                </div>
-                <div class="benefit-card">
-                  <i>📈</i> 
-                  <h4>Cập Nhật 2025</h4>
-                  <p>Nội dung theo PHP 8.3, Laravel 11 mới nhất.</p>
-                </div>
-                <div class="benefit-card">
-                  <i>💼</i>
-                  <h4>Job Ready</h4>
-                  <p>Portfolio dự án để apply việc làm backend dev.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      } else {
-        // Nội dung mặc định cho các khóa khác
-        detailedContent = `
-          <div class="course-detail-box">
-            <div class="course-icon-big">${course.icon}</div>
-            <div class="course-info">
-              <h1>${course.name}</h1>
-              <p>${course.desc} <br> Nội dung chi tiết: Video bài giảng, bài tập thực hành, hỗ trợ mentor 24/7.</p>
-              <div class="price">${course.price}</div>
-              <div class="stats">
-                <span>${course.students} học viên</span>
-                <span>${course.hours} giờ học</span>
-              </div>
-              <button class="enroll-btn" onclick="enrollCourse(${course.id})">Đăng Ký Ngay</button>
-              <a href="category.php" class="cta-button">Quay Lại Danh Mục</a>
-            </div>
-          </div>
-        `;
-      }
-
-      document.getElementById('courseDetail').innerHTML = detailedContent;
-
-      // Gợi ý 2 khóa liên quan (luôn hiển thị)
-      const related = courses.filter(c => c.id !== courseId).slice(0, 2);
-      const relatedHTML = related.map(r => `
-        <div class="course-card" onclick="goToDetail(${r.id})">
-          <div class="course-icon">${r.icon}</div>
-          <h3 class="course-title">${r.name}</h3>
-          <p class="course-desc">${r.desc}</p>
-          <div class="price">${r.price}</div>
-          <div class="stats">
-            <span>${r.students} học viên</span>
-            <span>${r.hours} giờ</span>
-          </div>
-          <button class="enroll-btn">Chi Tiết</button>
-        </div>
-      `).join('');
-      document.getElementById('relatedCourses').innerHTML = relatedHTML;
-    } else {
-      document.getElementById('courseDetail').innerHTML = '<h1 style="text-align: center; color: #666;">Không tìm thấy khóa học!</h1>';
-    }
-
     function goToDetail(id) {
       window.location.href = `course-detail.php?id=${id}`;
     }
 
-   function enrollCourse(id) {
-    const course = courses.find(c => c.id === id);
+    function enrollCourse(id) {
+      const course = courses.find(c => c.id === id);
 
-    fetch('page/cart/add-to-cart.php', {
+      // Gửi dữ liệu sang PHP để lưu session
+      fetch('page/cart/add-to-cart.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `id=${course.id}&name=${encodeURIComponent(course.name)}&price=${encodeURIComponent(course.price)}`
-    })
-    .then(res => res.json())
-    .then(data => {
+      })
+      .then(res => res.json())
+      .then(data => {
         if (data.status === 'added') {
-            Swal.fire({
-                title: "🎉 Đã Thêm Thành Công!",
-                html: `<b>${course.name}</b> đã được thêm vào giỏ hàng.`,
-                icon: "success",
-                confirmButtonText: "Đi đến giỏ hàng"
-            }).then(() => {
-                window.location.href = "page/cart/cart.php";
-            });
-
+          alert(`Đã thêm "${course.name}" vào giỏ hàng!`);
+          window.location.href = "page/cart/cart.php"; // 👉 chuyển sang trang giỏ hàng
         } else if (data.status === 'exists') {
-            Swal.fire({
-                title: "⚠️ Đã tồn tại!",
-                html: `Khóa học <b>${course.name}</b> đã có trong giỏ.`,
-                icon: "warning"
-            });
-
+          alert(`"${course.name}" đã có trong giỏ hàng.`);
         } else {
-            Swal.fire({
-                title: "❌ Lỗi!",
-                text: "Không thể thêm khóa học.",
-                icon: "error"
-            });
+          alert('Lỗi khi thêm khóa học!');
         }
-    });
-}
-
-
-  </script>
+      });
+    }
+    </script>
 </body>
 </html>
