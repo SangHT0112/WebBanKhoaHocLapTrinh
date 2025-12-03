@@ -1,4 +1,30 @@
 <?php
+require_once __DIR__ . '/db.php';
+
+// Lấy danh sách bảng trong database
+$tables = [];
+$result = $conn->query("SHOW TABLES");
+
+if ($result) {
+    while ($row = $result->fetch_array()) {
+        $tables[] = $row[0];
+    }
+}
+
+$schemaInfo = "";
+
+foreach ($tables as $table) {
+    $schemaInfo .= "Bảng $table:\n";
+
+    $columns = $conn->query("DESCRIBE `$table`");
+    while ($col = $columns->fetch_assoc()) {
+        $schemaInfo .= "- {$col['Field']} ({$col['Type']})\n";
+    }
+
+    $schemaInfo .= "\n";
+}
+
+
 // Bật error reporting (xóa khi production)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -36,7 +62,17 @@ if (empty($userMessage)) {
 }
 
 // Prompt hệ thống cho AI phù hợp với site
-$systemPrompt = "Bạn là AI hỗ trợ của Code Cùng Sang - nền tảng học lập trình. Trả lời ngắn gọn, hữu ích bằng tiếng Việt về khóa học PHP, React, C++. Gợi ý lộ trình nếu phù hợp.";
+$systemPrompt = "
+Bạn là AI chuyên truy vấn database MySQL cho hệ thống webbankhoahoc.
+
+Cấu trúc database:
+$schemaInfo
+
+Nhiệm vụ:
+- Khi người dùng hỏi dữ liệu -> chuyển thành SQL SELECT
+- Chỉ tạo câu SQL hợp lệ MySQL
+- Không giải thích, không markdown
+";
 
 $prompt = $systemPrompt . "\n\nNgười dùng: " . $userMessage . "\nAI:";
 

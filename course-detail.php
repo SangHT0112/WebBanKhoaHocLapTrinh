@@ -20,6 +20,9 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
     <meta charset="UTF-8">
     <?php include __DIR__ . '/layout/head.php'; ?>
     <link rel="stylesheet" href="course-detail.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 </head>
 <body>
     <header>
@@ -106,7 +109,7 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
 
         <?php if ($courseDetail): ?>
         <div class="related-products">
-            <h2>Lộ Trình Liên Quan</h2>
+             <?php include __DIR__ . '/review.php'; ?>
             <div class="courses-grid">
                 <?php
                 // TODO: Implement related courses logic here
@@ -123,27 +126,44 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
 
     <script>
     function enrollCourse(id) {
-        // Lấy thông tin khóa học từ PHP
-        const courseDetail = <?php echo json_encode($courseDetail); ?>;
+    const courseDetail = <?php echo json_encode($courseDetail); ?>;
 
-        // Gửi dữ liệu sang PHP để lưu session
-        fetch('page/cart/add-to-cart.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `id=${courseDetail.ma_khoa_hoc}&name=${encodeURIComponent(courseDetail.ten_khoa_hoc)}&price=${encodeURIComponent(courseDetail.gia)}`
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'added') {
-                alert(`Đã thêm "${courseDetail.course_name}" vào giỏ hàng!`);
+    fetch('page/cart/add-to-cart.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `id=${courseDetail.ma_khoa_hoc}&name=${encodeURIComponent(courseDetail.ten_khoa_hoc)}&price=${encodeURIComponent(courseDetail.gia)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'added') {
+            Swal.fire({
+                title: "🎉 Đã thêm vào giỏ hàng!",
+                html: `<b>${courseDetail.ten_khoa_hoc}</b> đã được thêm vào giỏ.`,
+                icon: "success",
+                confirmButtonText: "Đi đến giỏ hàng",
+                confirmButtonColor: "#3085d6"
+            }).then(() => {
                 window.location.href = "page/cart/cart.php";
-            } else if (data.status === 'exists') {
-                alert(`"${courseDetail.course_name}" đã có trong giỏ hàng.`);
-            } else {
-                alert('Lỗi khi thêm khóa học!');
-            }
-        });
-    }
+            });
+
+        } else if (data.status === 'exists') {
+            Swal.fire({
+                title: "⚠️ Khóa học đã tồn tại",
+                html: `Khóa học <b>${courseDetail.ten_khoa_hoc}</b> đã có trong giỏ.`,
+                icon: "warning",
+                confirmButtonText: "OK"
+            });
+
+        } else {
+            Swal.fire({
+                title: "❌ Lỗi!",
+                text: "Không thể thêm khóa học vào giỏ hàng.",
+                icon: "error",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+}
     // Copy mảng courses từ category.html
     const courses = [
       { id: 1, name: 'Lộ Trình PHP Master', price: '2.500.000 VNĐ', desc: 'Xây dựng web app mạnh mẽ với PHP, MySQL và Laravel.', icon: '🐘', students: '1.200', hours: '45', category: 'backend' },
@@ -291,27 +311,43 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc(ma_khoa_hoc: $courseId);
       window.location.href = `course-detail.php?id=${id}`;
     }
 
-    function enrollCourse(id) {
-      const course = courses.find(c => c.id === id);
+   function enrollCourse(id) {
+    const course = courses.find(c => c.id === id);
 
-      // Gửi dữ liệu sang PHP để lưu session
-      fetch('page/cart/add-to-cart.php', {
+    fetch('page/cart/add-to-cart.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `id=${course.id}&name=${encodeURIComponent(course.name)}&price=${encodeURIComponent(course.price)}`
-      })
-      .then(res => res.json())
-      .then(data => {
+    })
+    .then(res => res.json())
+    .then(data => {
         if (data.status === 'added') {
-          alert(`Đã thêm "${course.name}" vào giỏ hàng!`);
-          window.location.href = "page/cart/cart.php"; // 👉 chuyển sang trang giỏ hàng
+            Swal.fire({
+                title: "🎉 Đã Thêm Thành Công!",
+                html: `<b>${course.name}</b> đã được thêm vào giỏ hàng.`,
+                icon: "success",
+                confirmButtonText: "Đi đến giỏ hàng"
+            }).then(() => {
+                window.location.href = "page/cart/cart.php";
+            });
+
         } else if (data.status === 'exists') {
-          alert(`"${course.name}" đã có trong giỏ hàng.`);
+            Swal.fire({
+                title: "⚠️ Đã tồn tại!",
+                html: `Khóa học <b>${course.name}</b> đã có trong giỏ.`,
+                icon: "warning"
+            });
+
         } else {
-          alert('Lỗi khi thêm khóa học!');
+            Swal.fire({
+                title: "❌ Lỗi!",
+                text: "Không thể thêm khóa học.",
+                icon: "error"
+            });
         }
-      });
-    }
+    });
+}
+
 
   </script>
 </body>
