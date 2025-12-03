@@ -111,13 +111,20 @@ try {
     exit;
 }
 
-$systemPrompt = "Bạn là AI hỗ trợ của Code Cùng Sang - nền tảng học lập trình. Trả lời ngắn gọn, hữu ích bằng tiếng Việt về khóa học PHP, React, C++. Gợi ý lộ trình nếu phù hợp.";
+$systemPrompt = "Bạn là AI hỗ trợ của Code Cùng Sang - nền tảng học lập trình. Trả lời ngắn gọn, hữu ích, thân thiện bằng tiếng Việt. Tập trung vào khóa học PHP (backend web), React (frontend web), C++ (lập trình hệ thống). 
+
+- Nếu hỏi giá khóa học cụ thể (ví dụ: 'giá khóa PHP'): Liệt kê tên khóa, giá VND, số học viên, giờ học. Định dạng bảng đơn giản nếu nhiều kết quả.
+- Nếu hỏi khuyến nghị học web (ví dụ: 'muốn học web thì học gì'): Gợi ý lộ trình: Bắt đầu PHP cho backend + React cho frontend. Đề xuất 2-3 khóa top (dựa trên rating/số học viên), lý do chọn, lợi ích.
+- Nếu hỏi phát triển di động (ví dụ: 'học gì để làm app mobile'): Gợi ý lộ trình chung (Flutter/Dart cho cross-platform, hoặc Swift/Kotlin riêng). Vì nền tảng chưa có khóa mobile, khuyến khích học web trước (PHP/React) làm nền tảng, rồi bổ sung. Gợi ý khóa liên quan nếu có (như React Native nếu mở rộng).
+- Luôn gợi ý lộ trình học nếu phù hợp (bước 1: cơ bản, bước 2: nâng cao). Kết thúc bằng lời kêu gọi hành động: 'Đăng ký ngay để nhận ưu đãi!'.
+
+Sử dụng ngôn ngữ gần gũi, thêm emoji nếu phù hợp (📚, 💻). Không đề cập DB/SQL.";
 
 function callGemini($prompt, $keys, $apiUrlBase) {
     try {
         $body = [
             'contents' => [['parts' => [['text' => $prompt]]]],
-            'generationConfig' => ['temperature' => 0.7, 'maxOutputTokens' => 2000000]
+            'generationConfig' => ['temperature' => 0.8, 'maxOutputTokens' => 2000000]  // Tăng temperature cho đa dạng
         ];
         $bodyJson = json_encode($body);
         $apiResponse = fetchWithFailover($keys, $apiUrlBase, $bodyJson);
@@ -186,18 +193,61 @@ function extractGeminiText($apiResponse) {
 $apiUrlBase = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 try {
-    // Phân loại & generate reply (giữ nguyên logic cũ)
-    $classificationPrompt = $systemPrompt . "\n\nSchema CSDL:\n" . $schemaDescription . 
-                            "\n\nCâu hỏi người dùng: " . $userMessage . 
-                            "\n\nNhiệm vụ: Nếu câu hỏi liên quan đến thông tin khóa học cụ thể (tên, giá, mô tả, danh sách theo category), trả lời 'QUERY_DB' theo sau là câu SQL SELECT phù hợp (chỉ SELECT, dùng ? cho tham số nếu cần, ví dụ: SELECT * FROM courses WHERE category = ?). Nếu không cần DB (lộ trình chung, chào hỏi), trả lời 'GENERAL'. Định dạng chính xác: QUERY_DB\n[SQL QUERY] hoặc GENERAL.";
-    
+    // Phân loại & generate reply (cập nhật classification để xử lý khuyến nghị tốt hơn)
+    $classificationPrompt = "
+    Bạn là hệ thống phân loại yêu cầu truy vấn.
+
+    Dưới đây là mô tả CSDL thực tế:
+
+    $schemaDescription
+
+    --- NHIỆM VỤ RÕ RÀNG ---
+    1. Nếu câu hỏi yêu cầu dữ liệu cụ thể từ DB:
+    - lấy danh sách khóa học / theo category (ví dụ: PHP, React)
+    - tìm khoá học theo tên (fuzzy search)
+    - xem giá / chi tiết / số học viên / giờ học của khóa cụ thể
+    ➡️ Trả về: QUERY_DB
+    và VIẾT SQL SELECT đúng 100% theo CSDL ở trên (sử dụng LIKE cho tên, = cho danh_muc).
+
+    2. Nếu câu hỏi là khuyến nghị lộ trình, gợi ý khóa học dựa trên chủ đề (web, mobile, v.v.), không cần dữ liệu chính xác từ DB:
+    - học web / frontend / backend
+    - phát triển di động / app mobile
+    - so sánh ngôn ngữ / lộ trình học
+    ➡️ Trả về: GENERAL
+
+    3. Các trường hợp khác (chào hỏi, hỏi chung): GENERAL
+
+    --- QUY TẮC SQL ---
+    - Chỉ SELECT, ? placeholder.
+    - Fuzzy tên: LIKE CONCAT('%', ?, '%')
+    - Category: danh_muc = ? hoặc JOIN categories.
+    - Không tạo bảng/cột mới.
+    - JOIN nếu cần: courses LEFT JOIN categories ON danh_muc_id = id; LEFT JOIN reviews ON id = course_id cho rating.
+
+    --- ĐỊNH DẠNG BẮT BUỘC ---
+    QUERY_DB
+    SELECT ... (full SQL)
+
+    hoặc
+
+    GENERAL
+
+    --- CÂU HỎI ---
+    $userMessage
+    ";
+
     $classification = callGemini($classificationPrompt, GEMINI_API_KEYS, $apiUrlBase);
     
     error_log('Classification response: ' . $classification);
     
     if (strpos($classification, 'GENERAL') !== false) {
-        $prompt = $systemPrompt . "\n\nNgười dùng: " . $userMessage . "\nAI:";
-        $aiReply = callGemini($prompt, GEMINI_API_KEYS, $apiUrlBase);
+        // Cập nhật prompt cho GENERAL để đa dạng, dựa trên ví dụ
+        $generalPrompt = $systemPrompt . "\n\nVí dụ trả lời đa dạng:\n" .
+                         "- Hỏi giá: 'Khóa PHP Master giá 1.500.000 VNĐ, có 500 học viên. 📈'\n" .
+                         "- Học web: 'Lộ trình web: 1. PHP backend (khóa 'Lộ Trình PHP Master'). 2. React frontend (khóa 'React Pro'). Đăng ký combo giảm 20%! 💻'\n" .
+                         "- Mobile: 'Cho mobile, học Flutter sau khi vững web. Bắt đầu với React để làm React Native. Gợi ý khóa React trước! 🚀'\n\n" .
+                         "Người dùng: " . $userMessage . "\nAI:";
+        $aiReply = callGemini($generalPrompt, GEMINI_API_KEYS, $apiUrlBase);
     } else {
         $sqlMatch = [];
         if (preg_match('/QUERY_DB\s*(.+)/s', $classification, $sqlMatch)) {
@@ -214,11 +264,21 @@ try {
             $paramCount = substr_count($generatedSql, '?');
             if ($paramCount > 0) {
                 $lowerMessage = strtolower($userMessage);
-                $categoryMap = ['php' => 'PHP', 'react' => 'React', 'c++' => 'C++'];
+                $categoryMap = [
+                    'php' => 'PHP', 
+                    'react' => 'React', 
+                    'c++' => 'C++',
+                    'web' => 'PHP',  // Mặc định cho web
+                    'mobile' => 'React'  // Gợi ý React cho mobile web
+                ];
                 foreach ($categoryMap as $key => $value) {
                     if (strpos($lowerMessage, $key) !== false) {
                         $params[] = $value;
                     }
+                }
+                // Fuzzy cho tên khóa
+                if (strpos($lowerMessage, 'khóa') !== false || strpos($lowerMessage, 'course') !== false) {
+                    $params[] = $userMessage;  // Sử dụng message gốc cho fuzzy
                 }
                 while (count($params) < $paramCount) $params[] = '%';
                 $params = array_slice($params, 0, $paramCount);
@@ -243,9 +303,14 @@ try {
             
             $resultsJson = json_encode($results, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
             
+            // Cập nhật replyPrompt để đa dạng dựa trên loại query
             $replyPrompt = $systemPrompt . "\n\nCâu hỏi người dùng: " . $userMessage . 
                            "\n\nKết quả từ DB:\n" . $resultsJson . 
-                           "\n\nNhiệm vụ: Dựa vào kết quả DB, trả lời ngắn gọn, hữu ích bằng tiếng Việt. Nếu không có kết quả, gợi ý khóa học liên quan. Không đề cập đến DB hoặc SQL.";
+                           "\n\nNhiệm vụ: Dựa vào kết quả DB, trả lời đa dạng, hữu ích bằng tiếng Việt. 
+                           - Nếu giá: Liệt kê rõ ràng, thêm emoji 💰.
+                           - Nếu danh sách: Gợi ý top 1-2, lý do.
+                           - Nếu không kết quả: Chuyển sang gợi ý GENERAL (web/mobile).
+                           Không đề cập đến DB hoặc SQL. Giữ ngắn gọn, hấp dẫn.";
             
             $aiReply = callGemini($replyPrompt, GEMINI_API_KEYS, $apiUrlBase);
         } else {

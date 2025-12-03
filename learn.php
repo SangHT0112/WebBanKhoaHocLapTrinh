@@ -97,6 +97,9 @@ function getQuizResult($db, $ma_nguoi_dung, $lessonId) {
     <title><?php echo htmlspecialchars($courseDetail['ten_khoa_hoc']); ?> - Học Ngay</title>
     <?php include __DIR__ . '/layout/head.php'; ?>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thêm SweetAlert2 CDN vào <head> nếu chưa có -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </head>
 
 <body class="bg-gray-50 text-gray-800">
@@ -347,6 +350,7 @@ function getQuizResult($db, $ma_nguoi_dung, $lessonId) {
     <?php include __DIR__ . '/layout/footer.php'; ?>
 
 <script>
+    
 function toggleLessons(btn) {
     const content = btn.nextElementSibling;
     const icon = btn.querySelector("span");
@@ -359,7 +363,6 @@ function toggleLessons(btn) {
         icon.style.transform = "rotate(180deg)";
     }
 }
-
 // JS cho từng form quiz (vì có thể có nhiều lesson)
 document.addEventListener('DOMContentLoaded', function() {
     const quizForms = document.querySelectorAll('form[id^="quizForm_"]');
@@ -368,50 +371,76 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
 
             const formData = new FormData(this);
-
+               // ⭐ HIỆN LOADING SWEETALERT
+            Swal.fire({
+                title: 'Đang chấm bài...',
+                html: 'AI đang phân tích và chấm điểm bài làm của bạn.<br>Vui lòng chờ trong giây lát...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
             try {
                 const res = await fetch('./quiz-handler.php', {
                     method: 'POST',
                     body: formData
                 });
 
-                if (!res.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                if (!res.ok) throw new Error('Network response was not ok');
 
                 const data = await res.json();
-
+                 // 🔥 ĐÓNG LOADING
+                Swal.close();
                 if (data.error) {
-                    alert('Lỗi: ' + data.error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: data.error,
+                    });
                     console.error('Error details:', data);
                     return;
                 }
 
-                // Hiển thị kết quả
+                // Hiển thị kết quả đẹp với Swal
                 const score = data.score || 0;
                 const maxScore = data.max_score || 0;
-                let message = `Điểm của bạn: ${score}/${maxScore}`;
-                if (data.details) {
-                    let feedback = '\n\nChi tiết:\n';
+
+                let html = `<p>Điểm của bạn: <strong>${score}/${maxScore}</strong></p>`;
+
+                if (data.details && data.details.length) {
+                    html += '<ul style="text-align:left;margin-top:10px;">';
                     data.details.forEach(detail => {
-                        feedback += `- Câu ${detail.question_id}: ${detail.is_correct ? 'Đúng' : 'Sai'} (${detail.score}/${detail.score_max || 'N/A'}) - ${detail.explanation || ''}\n`;
+                        html += `<li>
+                            Câu ${detail.question_id}: <strong>${detail.is_correct ? 'Đúng ✅' : 'Sai ❌'}</strong> 
+                            (${detail.score}/${10})<br>
+                            <em>${detail.explanation || ''}</em>
+                        </li>`;
                     });
-                    message += feedback;
+                    html += '</ul>';
                 }
-                alert(message);
 
-                console.log('Full response:', data);
+                await Swal.fire({
+                    title: 'Kết quả Quiz',
+                    html: html,
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
 
-                // Optional: Redirect hoặc update progress bar
-                location.reload(); // Reload để cập nhật tiến độ nếu cần
+                // Optional: reload để cập nhật tiến độ
+                location.reload();
 
             } catch (error) {
-                alert('Có lỗi xảy ra khi nộp bài: ' + error.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Có lỗi xảy ra',
+                    text: error.message
+                });
                 console.error('Fetch error:', error);
             }
         });
     });
 });
+
 </script>
 
 </body>

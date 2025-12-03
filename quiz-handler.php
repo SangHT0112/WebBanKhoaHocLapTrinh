@@ -62,7 +62,7 @@ Trả về CHỈ JSON thuần túy (KHÔNG markdown, không text thừa) với c
   \"max_score\": tổng_điểm_tối_đa (tính từ diem của tất cả questions),
   \"details\": [
     {
-      \"question_id\": id_câu_hỏi,
+      \"question_id\": thu_tu,
       \"user_answer\": câu_trả_lời_user (giữ nguyên),
       \"is_correct\": true/false,
       \"score\": điểm_câu_này (0 đến diem đầy đủ),

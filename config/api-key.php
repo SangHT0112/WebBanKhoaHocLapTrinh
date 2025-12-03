@@ -2,6 +2,8 @@
 // Định nghĩa nhiều API keys (thay bằng keys thực của bạn, phân cách bằng dấu phẩy hoặc mảng)
 // Ví dụ: Các keys từ Google AI Studio (tạo nhiều account để có nhiều keys miễn phí)
 $rawKeys = [
+    'AIzaSyDyFqx1JcpDq7Jp5FtOucXFQZ9Cm15_Wes',
+    "AIzaSyB0N08gzn_alTZ_yM5BWHJFiHDLFUO2vkY",
     'AIzaSyA0dxT-VrMs4VphmoztFk89aojjg28BwzM',
     'AIzaSyBk7twdv6n450gZtjhbNN_ugriuqkut-UE',
 

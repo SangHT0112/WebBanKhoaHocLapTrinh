@@ -59,40 +59,46 @@ class ChiTietKhoaHoc {
     }
 
     // Tính tiến độ dựa trên lessons đã làm quiz
-    public function tinhTienDo($ma_khoa_hoc, $ma_nguoi_dung) {
-        // 1. Lấy tất cả lessons của khóa học
-        $sqlLessons = "SELECT cl.id 
-                    FROM course_modules cm
-                    JOIN course_lessons cl ON cm.id = cl.ma_module
-                    WHERE cm.course_id = ?";
-        $stmt = $this->conn->prepare($sqlLessons);
-        $stmt->bind_param("i", $ma_khoa_hoc);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $lessonIds = [];
-        while ($row = $res->fetch_assoc()) {
-            $lessonIds[] = $row['id'];
-        }
-        $stmt->close();
-
-        if (empty($lessonIds)) return 0.0;
-
-        // 2. Đếm số lessons đã làm quiz
-        $in = implode(',', $lessonIds);
-        $sqlDone = "SELECT COUNT(DISTINCT ma_lesson) AS done_count 
-                    FROM user_quiz_answers 
-                    WHERE ma_nguoi_dung = ? AND ma_lesson IN ($in)";
-        $stmt = $this->conn->prepare($sqlDone);
-        $stmt->bind_param("i", $ma_nguoi_dung);
-        $stmt->execute();
-        $res = $stmt->get_result()->fetch_assoc();
-        $doneCount = intval($res['done_count'] ?? 0);
-        $stmt->close();
-
-        // 3. Tính %
-        $totalLessons = count($lessonIds);
-        return ($totalLessons > 0) ? ($doneCount / $totalLessons) * 100 : 0.0;
+  public function tinhTienDo($ma_khoa_hoc, $ma_nguoi_dung) {
+    // 1. Lấy tất cả QUIZ lessons của khóa học
+    $sqlLessons = "SELECT cl.id 
+                   FROM course_modules cm
+                   JOIN course_lessons cl ON cm.id = cl.ma_module
+                   WHERE cm.course_id = ? AND cl.loai_bai_hoc = 'kiem_tra'";
+    $stmt = $this->conn->prepare($sqlLessons);
+    $stmt->bind_param("i", $ma_khoa_hoc);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    
+    $quizLessonIds = [];
+    while ($row = $res->fetch_assoc()) {
+        $quizLessonIds[] = $row['id'];
     }
+    $stmt->close();
+
+    // Nếu khóa học không có quiz nào → tiến độ = 0%
+    if (empty($quizLessonIds)) return 0.0;
+
+    // 2. Đếm số quiz mà user đã làm
+    $in = implode(',', $quizLessonIds);
+    $sqlDone = "SELECT COUNT(DISTINCT ma_lesson) AS done_count 
+                FROM user_quiz_answers 
+                WHERE ma_nguoi_dung = ? AND ma_lesson IN ($in)";
+    $stmt = $this->conn->prepare($sqlDone);
+    $stmt->bind_param("i", $ma_nguoi_dung);
+    $stmt->execute();
+    
+    $res = $stmt->get_result()->fetch_assoc();
+    $doneCount = intval($res['done_count'] ?? 0);
+    $stmt->close();
+
+    // 3. Tính % theo số lượng quiz
+    $totalQuiz = count($quizLessonIds);
+    $progress = ($doneCount / $totalQuiz) * 100;
+
+    return $progress;
+}
+
 
 
     // 🔹 Lấy câu hỏi cho lesson (mới)
