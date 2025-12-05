@@ -40,16 +40,44 @@ if (count($items) === 0) {
     die("Giỏ hàng trống.");
 }
 
+// Tính toán discount từ các voucher lưu trong session (nếu có)
+$discount_amount = 0;
+$applied_vouchers = isset($_SESSION['applied_vouchers']) && is_array($_SESSION['applied_vouchers']) ? $_SESSION['applied_vouchers'] : [];
+$final_total = $total;
+if (!empty($applied_vouchers)) {
+    $fixed_sum = 0;
+    $percent_list = [];
+    foreach ($applied_vouchers as $av) {
+        if ($av['discount_type'] === 'fixed') {
+            $fixed_sum += floatval($av['discount_value']);
+        } else {
+            $percent_list[] = floatval($av['discount_value']);
+        }
+    }
+    $remaining = max(0, $total - $fixed_sum);
+    $mult = 1.0;
+    foreach ($percent_list as $p) {
+        $mult *= (1 - ($p / 100.0));
+    }
+    $after_percent = $remaining * $mult;
+    $final_total = max(0, $after_percent);
+    $discount_amount = max(0, min($total - $final_total, $total));
+}
+
+// Nếu final_total == 0 => free registration: proceed without payment
+// order_total là số tiền thực tế lưu vào đơn hàng
+$order_total = $final_total;
+
 // --- Bắt đầu lưu đơn hàng ---
 $conn->begin_transaction();
 
 try {
     // Thêm vào bảng orders (status 'success' cho VietQR - giả sử manual verify ở đây, bạn có thể thêm admin check sau)
-    $insertOrder = $conn->prepare("
-        INSERT INTO orders (user_id, tong_tien, trang_thai, ngay_tao)
-        VALUES (?, ?, 'thành công', NOW())
-    ");
-    $insertOrder->bind_param("id", $user_id, $total);
+    $insertOrder = $conn->prepare(
+        "INSERT INTO orders (user_id, tong_tien, trang_thai, ngay_tao)
+        VALUES (?, ?, 'thành công', NOW())"
+    );
+    $insertOrder->bind_param("id", $user_id, $order_total);
     $insertOrder->execute();
     $order_id = $conn->insert_id;
 
@@ -64,19 +92,56 @@ try {
     }
 
     // Thêm quyền truy cập khóa học vào user_courses (nếu chưa có bảng, tạo trước)
-    $accessStmt = $conn->prepare("
-        INSERT IGNORE INTO user_courses (user_id, course_id, access_date)
-        VALUES (?, ?, NOW())
-    ");
+    // Lưu thông tin voucher đã áp dụng (nếu có) vào orders.applied_vouchers
+    $applied_vouchers = isset($_SESSION['applied_vouchers']) && is_array($_SESSION['applied_vouchers']) ? $_SESSION['applied_vouchers'] : [];
+
+    if (!empty($applied_vouchers)) {
+        // Kiểm tra xem cột applied_vouchers có tồn tại không, nếu không thì thêm cột TEXT
+        $checkCol = $conn->prepare("SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'applied_vouchers'");
+        $checkCol->execute();
+        $colRes = $checkCol->get_result()->fetch_assoc();
+        if (intval($colRes['cnt']) === 0) {
+            $conn->query("ALTER TABLE orders ADD COLUMN applied_vouchers TEXT NULL");
+        }
+        // Lưu JSON danh sách mã/voucher id tạm thời (mã đủ dễ đọc)
+        $codes = array_map(function($v){ return $v['code']; }, $applied_vouchers);
+        $codes_json = json_encode($codes, JSON_UNESCAPED_UNICODE);
+        // Cập nhật orders sau khi insert để lưu applied_vouchers (thực hiện sau khi có $order_id)
+    }
+
+    // Thêm bản ghi vào bảng enrollments để cấp quyền học
+    // Bảng enrollments đã có trong DB dump: (ma_khoa_hoc, ma_nguoi_dung, ngay_dang_ky, trang_thai, tien_do, ngay_hoan_thanh)
+    $enrollStmt = $conn->prepare(
+        "INSERT INTO enrollments (ma_khoa_hoc, ma_nguoi_dung, ngay_dang_ky, trang_thai, tien_do) VALUES (?, ?, NOW(), 'dang_hoc', 0.00)"
+    );
     foreach ($items as $item) {
-        $accessStmt->bind_param("ii", $user_id, $item['course_id']);
-        $accessStmt->execute();
+        $enrollStmt->bind_param("ii", $item['course_id'], $user_id);
+        $enrollStmt->execute();
+    }
+
+    // Nếu có applied_vouchers, cập nhật vào orders.applied_vouchers
+    if (!empty($applied_vouchers)) {
+        if (!isset($codes_json)) {
+            $codes = array_map(function($v){ return $v['code']; }, $applied_vouchers);
+            $codes_json = json_encode($codes, JSON_UNESCAPED_UNICODE);
+        }
+        $updateOrder = $conn->prepare("UPDATE orders SET applied_vouchers = ? WHERE id = ?");
+        if ($updateOrder) {
+            $updateOrder->bind_param("si", $codes_json, $order_id);
+            $updateOrder->execute();
+            $updateOrder->close();
+        }
     }
 
     // Xóa giỏ hàng sau khi đặt
     $deleteCart = $conn->prepare("DELETE FROM carts WHERE user_id = ?");
     $deleteCart->bind_param("i", $user_id);
     $deleteCart->execute();
+
+    // Clear applied vouchers in session after successful order
+    if (isset($_SESSION['applied_vouchers'])) {
+        unset($_SESSION['applied_vouchers']);
+    }
 
     $conn->commit();
 
@@ -209,6 +274,6 @@ try {
 }
 
 // Redirect về success page
-header("Location: /page/orders/success.php?order_id={$order_id}");
+header("Location: /page/cart/cart.php");
 exit;
 ?>

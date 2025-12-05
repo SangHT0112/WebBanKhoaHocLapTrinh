@@ -30,6 +30,41 @@ while ($row = $result->fetch_assoc()) {
     $total += $row['price'] * $row['quantity'];
 }
 
+// Tính toán discount từ nhiều voucher
+$discount_amount = 0;
+$applied_vouchers = isset($_SESSION['applied_vouchers']) && is_array($_SESSION['applied_vouchers']) ? $_SESSION['applied_vouchers'] : [];
+
+if (!empty($applied_vouchers)) {
+  // Áp dụng các voucher: cố định trước, sau đó phần trăm (tính theo phép nhân liên tiếp)
+  $fixed_sum = 0;
+  $percent_list = [];
+  foreach ($applied_vouchers as $av) {
+    if ($av['discount_type'] === 'fixed') {
+      $fixed_sum += floatval($av['discount_value']);
+    } else {
+      $percent_list[] = floatval($av['discount_value']);
+    }
+  }
+
+  // Áp dụng fixed
+  $remaining = max(0, $total - $fixed_sum);
+
+  // Áp dụng phần trăm liên tiếp: final = remaining * product(1 - p/100)
+  $mult = 1.0;
+  foreach ($percent_list as $p) {
+    $mult *= (1 - ($p / 100.0));
+  }
+
+  $after_percent = $remaining * $mult;
+
+    $final_total = max(0, $after_percent);
+    $discount_amount = $total - $final_total;
+    // đảm bảo không âm
+    $discount_amount = max(0, min($discount_amount, $total));
+} else {
+  $final_total = $total;
+}
+
 // Cấu hình VietQR
 $bank_id = "KLB";
 $account_no = "101499100004323939";
@@ -37,8 +72,16 @@ $account_name = "KhoaHocOnline";
 $template = "compact2";
 $description = "Thanh toan khoa hoc user " . $user_id;
 
-// Sinh URL mã VietQR động
-$vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.png?amount={$total}&addInfo=" . urlencode($description) . "&accountName=" . urlencode($account_name);
+// Sinh URL mã VietQR động (sử dụng final_total sau khi trừ discount)
+$vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.png?amount={$final_total}&addInfo=" . urlencode($description) . "&accountName=" . urlencode($account_name);
+// Load active vouchers from database (available for selection)
+$vouchers = [];
+$vq = "SELECT id, code, description, discount_value, discount_type, min_order_value FROM vouchers WHERE status='active' AND (start_date IS NULL OR start_date <= CURDATE()) AND (end_date IS NULL OR end_date >= CURDATE()) ORDER BY code";
+if ($vres = $conn->query($vq)) {
+  while ($vrow = $vres->fetch_assoc()) {
+    $vouchers[] = $vrow;
+  }
+}
 ?>
 
 <!DOCTYPE html>
@@ -84,11 +127,55 @@ $vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.
           </table>
         </div>
 
-        <!-- Tổng tiền -->
-        <div class="flex justify-between items-center mt-6 border-t pt-4">
-          <div class="text-lg font-semibold text-gray-700">Tổng cộng:</div>
-          <div class="text-2xl font-bold text-green-600">
-            <?= number_format($total, 0, ',', '.') ?> ₫
+        <!-- Phần chọn / nhập mã voucher -->
+        <div class="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <p class="text-gray-700 font-semibold mb-3">🎟️ Áp dụng mã giảm giá (nếu có)</p>
+          <div class="flex gap-2">
+            <select id="voucherSelect" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">
+              <option value="">-- Chọn voucher --</option>
+              <?php foreach ($vouchers as $v): ?>
+                <option value="<?= htmlspecialchars($v['code']) ?>">
+                  <?= htmlspecialchars($v['code']) ?> - <?= $v['discount_type'] === 'percent' ? (intval($v['discount_value']) . '%') : number_format($v['discount_value'], 0, ',', '.') . '₫' ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+            <input type="text" id="voucherInput" placeholder="Hoặc nhập mã voucher" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm">
+            <button id="applyVoucher" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition text-sm">Áp dụng</button>
+          </div>
+          <p id="voucherMessage" class="text-sm mt-2 text-gray-600"></p>
+          <?php if (!empty($applied_vouchers)): ?>
+            <div class="mt-3 p-3 bg-green-100 border border-green-300 rounded-lg text-left">
+              <?php foreach ($applied_vouchers as $av): ?>
+                <p class="text-sm text-green-800 mb-1">
+                  ✅ <strong><?= htmlspecialchars($av['code']) ?></strong> - <?= htmlspecialchars($av['description']) ?>
+                  <button onclick="removeVoucher('<?= htmlspecialchars($av['code']) ?>')" class="ml-2 text-red-600 font-semibold">Bỏ</button>
+                </p>
+              <?php endforeach; ?>
+              <p class="mt-2">
+                <button onclick="removeVoucher()" class="text-sm text-gray-700 underline">Xóa tất cả voucher</button>
+              </p>
+            </div>
+          <?php endif; ?>
+        </div>
+
+        <!-- Tổng tiền và discount -->
+        <div class="mt-6 border-t pt-4">
+          <div class="flex justify-between items-center mb-2">
+            <div class="text-gray-700">Tiền hàng:</div>
+            <div class="text-lg font-semibold text-gray-700"><?= number_format($total, 0, ',', '.') ?> ₫</div>
+          </div>
+          <?php if ($discount_amount > 0): ?>
+            <div class="flex justify-between items-center mb-3 text-red-600">
+              <div>Giảm giá:</div>
+              <div class="text-lg font-semibold">-<?= number_format($discount_amount, 0, ',', '.') ?> ₫</div>
+            </div>
+          <?php endif; ?>
+          
+          <div class="flex justify-between items-center border-t pt-3">
+            <div class="text-lg font-semibold text-gray-700">Tổng cộng:</div>
+            <div class="text-2xl font-bold text-green-600">
+              <?= number_format($final_total, 0, ',', '.') ?> ₫
+            </div>
           </div>
         </div>
 
@@ -143,6 +230,7 @@ $vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.
     const vietqrSection = document.getElementById("vietqrSection");
     const btnVietQR = document.getElementById("btnVietQR");
     const btnMomo = document.getElementById("btnMomo");
+    const finalTotal = <?= json_encode((float)$final_total) ?>;
 
     // Khi nhấn "Xác nhận thanh toán" - Kiểm tra thông tin user trước
     btnThanhToan?.addEventListener("click", async function() {
@@ -156,7 +244,13 @@ $vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.
         const data = await response.json();
 
         if (data.status === 'complete') {
-          // Thông tin đầy đủ, hiển thị phương thức thanh toán
+          // Thông tin đầy đủ
+          if (finalTotal === 0) {
+            // Trường hợp miễn phí: chuyển thẳng sang checkout để đăng ký mà không cần chuyển khoản
+            window.location.href = 'checkout.php';
+            return;
+          }
+          // Hiển thị phương thức thanh toán
           btnThanhToan.classList.add("hidden");
           chonPTTT.classList.remove("hidden");
         } else if (data.status === 'incomplete') {
@@ -201,8 +295,86 @@ $vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.
 
     // Khi chọn MOMO
     btnMomo?.addEventListener("click", function() {
-      window.location.href = "momo_payment.php?amount=<?= $total ?>&user=<?= $user_id ?>";
+      window.location.href = "momo_payment.php?amount=<?= $final_total ?>&user=<?= $user_id ?>";
     });
+
+    // Áp dụng voucher
+    const applyVoucher = document.getElementById('applyVoucher');
+    const voucherInput = document.getElementById('voucherInput');
+    const voucherSelect = document.getElementById('voucherSelect');
+    const voucherMessage = document.getElementById('voucherMessage');
+
+    applyVoucher?.addEventListener('click', async function() {
+      let voucherCode = '';
+      if (voucherSelect && voucherSelect.value) {
+        voucherCode = voucherSelect.value.trim();
+      } else if (voucherInput) {
+        voucherCode = voucherInput.value.trim();
+      }
+
+      if (!voucherCode) {
+        voucherMessage.textContent = '❌ Vui lòng chọn hoặc nhập mã voucher';
+        voucherMessage.style.color = '#dc2626';
+        return;
+      }
+
+      try {
+        const response = await fetch('voucher-handler.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: 'voucher_code=' + encodeURIComponent(voucherCode)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          voucherMessage.textContent = '✅ ' + data.message;
+          voucherMessage.style.color = '#16a34a';
+          if (voucherInput) voucherInput.value = '';
+          // Reload trang để cập nhật discount
+          setTimeout(() => window.location.reload(), 900);
+        } else {
+          voucherMessage.textContent = '❌ ' + data.message;
+          voucherMessage.style.color = '#dc2626';
+        }
+      } catch (error) {
+        console.error('Lỗi:', error);
+        voucherMessage.textContent = '❌ Lỗi kết nối server';
+        voucherMessage.style.color = '#dc2626';
+      }
+    });
+
+    // Auto-apply khi chọn voucher từ combobox
+    voucherSelect?.addEventListener('change', function() {
+      if (this.value) {
+        applyVoucher.click();
+      } else {
+        voucherMessage.textContent = '';
+      }
+    });
+
+    // Nhấn Enter để áp dụng voucher (nếu nhập tay)
+    voucherInput?.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        applyVoucher.click();
+      }
+    });
+
+    // Xóa voucher (nếu truyền code thì xóa cụ thể, không truyền thì xóa tất cả)
+    function removeVoucher(code = '') {
+      const opts = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      };
+      const body = code ? ('code=' + encodeURIComponent(code)) : '';
+      if (body) opts.body = body;
+
+      fetch('remove-voucher.php', opts).then(() => window.location.reload());
+    }
   </script>
   <script src="http://localhost:3001/socket.io/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
