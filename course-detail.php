@@ -232,6 +232,7 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc($courseId, $ma_nguoi_dung);
         </div>
         <?php if ($courseDetail): ?>
         <div class="related-products">
+            <?php include __DIR__ . '/review.php'; ?>
             <h2>Lộ Trình Liên Quan</h2>
             <div class="courses-grid">
                 <?php
@@ -261,6 +262,7 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc($courseId, $ma_nguoi_dung);
         .then(res => res.json())
         .then(data => {
             if (data.status === 'added') {
+                
                 alert(`Đã thêm "${courseDetail.ten_khoa_hoc}" vào giỏ hàng!`);
                 window.location.href = "page/cart/cart.php";
             } else if (data.status === 'exists') {
@@ -314,3 +316,4 @@ $courseDetail = $chiTietKhoaHoc->layMotKhoaHoc($courseId, $ma_nguoi_dung);
     </script>
 </body>
 </html>
+<?php include __DIR__ . '/search-results.php'; ?>
