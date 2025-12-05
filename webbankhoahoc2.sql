@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th12 05, 2025 lúc 08:19 AM
--- Phiên bản máy phục vụ: 10.4.32-MariaDB
--- Phiên bản PHP: 8.2.12
+-- Host: 127.0.0.1
+-- Generation Time: Dec 05, 2025 at 09:00 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Cơ sở dữ liệu: `webbankhoangoai2`
+-- Database: `webbankhoahoc2`
 --
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `carts`
+-- Table structure for table `carts`
 --
 
 CREATE TABLE `carts` (
@@ -35,17 +35,10 @@ CREATE TABLE `carts` (
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `carts`
---
-
-INSERT INTO `carts` (`id`, `user_id`, `course_id`, `quantity`, `created_at`) VALUES
-(40, 2, 1, 1, '2025-12-05 13:42:51');
-
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `categories`
+-- Table structure for table `categories`
 --
 
 CREATE TABLE `categories` (
@@ -57,7 +50,7 @@ CREATE TABLE `categories` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `categories`
+-- Dumping data for table `categories`
 --
 
 INSERT INTO `categories` (`id`, `ten_danh_muc`, `mo_ta`, `ngay_tao`, `ngay_cap_nhat`) VALUES
@@ -71,11 +64,12 @@ INSERT INTO `categories` (`id`, `ten_danh_muc`, `mo_ta`, `ngay_tao`, `ngay_cap_n
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `chat_history`
+-- Table structure for table `chat_history`
 --
 
 CREATE TABLE `chat_history` (
   `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL COMMENT 'ID người dùng từ bảng users',
   `session_id` varchar(255) NOT NULL COMMENT 'ID session để identify user (từ PHP session hoặc UUID)',
   `role` enum('user','ai') NOT NULL COMMENT 'Loại tin nhắn: user (người dùng) hoặc ai (AI)',
   `message` text NOT NULL COMMENT 'Nội dung tin nhắn',
@@ -83,32 +77,21 @@ CREATE TABLE `chat_history` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng lưu lịch sử chat AI';
 
 --
--- Đang đổ dữ liệu cho bảng `chat_history`
+-- Dumping data for table `chat_history`
 --
 
-INSERT INTO `chat_history` (`id`, `session_id`, `role`, `message`, `created_at`) VALUES
-(0, 'chat_1764303306996_r0t6ljj1k', 'user', 'hi', '2025-11-30 20:59:21'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'user', 'hi', '2025-11-30 20:59:38'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'user', 'hi', '2025-11-30 21:01:02'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'ai', 'Chào bạn! Tôi là AI hỗ trợ từ Code Cùng Sang.\n\nBạn đang quan tâm đến các khóa học PHP, React hay C++? Hãy cho tôi biết mục tiêu của bạn để tôi có thể gợi ý lộ trình học phù hợp nhất nhé!', '2025-11-30 21:01:07'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'user', 'khóa học html css nang cao giá bao nhiêu', '2025-12-02 20:42:38'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'ai', 'Khóa học Lộ Trình HTML CSS Nâng Cao có giá **1.500.000 VNĐ**.', '2025-12-02 20:42:49'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'user', 'lộ trình ai cơ bản thì giá bao nhiêu', '2025-12-02 20:43:43'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'ai', 'Chào bạn,\n\nHiện tại Code Cùng Sang tập trung vào các khóa học lập trình web (PHP, React) và lập trình hệ thống (C++). Chúng tôi chưa có khóa học AI cơ bản trực tiếp.\n\nNếu bạn quan tâm đến PHP, React, hoặc C++, tôi có thể gợi ý lộ trình và thông tin chi tiết hơn nhé!', '2025-12-02 20:43:50'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'user', 'lộ trình ai cơ bản giá bao nhiêu', '2025-12-02 20:49:44'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'ai', 'Chào bạn! 👋 Khóa học **Lộ Trình AI Cơ Bản** hiện có giá là **4.200.000 VNĐ** 💰 nhé. Đây là một khởi đầu tuyệt vời để bạn làm quen với thế giới AI đó! 🚀\n\nĐăng ký ngay để nhận ưu đãi!', '2025-12-02 20:49:50'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'user', 'tôi muốn làm web thì nên học khóa học gì', '2025-12-02 20:50:06'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'ai', 'Chào bạn! Rất vui bạn quan tâm đến lập trình web 💻. Để làm web chuyên nghiệp, bạn nên học cả phần backend (xử lý logic, dữ liệu) và frontend (giao diện người dùng).\n\nMình gợi ý lộ trình học tuyệt vời cho bạn đây:\n\n1.  **Bước 1: Backend với PHP** 🚀\n    *   Bắt đầu với khóa **Lộ Trình PHP Master** của Code Cùng Sang. Đây là khóa học nền tảng, được đánh giá 5 sao với hơn 1500 học viên, giúp bạn xây dựng server và xử lý dữ liệu.\n    *   **Lợi ích:** PHP cực kỳ phổ biến để xây dựng các ứng dụng web mạnh mẽ, từ website cá nhân đến hệ thống lớn.\n\n2.  **Bước 2: Frontend với React** ✨\n    *   Tiếp theo, hãy chinh phục giao diện người dùng với khóa **React Pro từ A-Z**. Khóa này có 4.8 sao và hơn 1200 học viên, giúp bạn tạo ra những giao diện đẹp mắt, tương tác mượt mà.\n    *   **Lợi ích:** React là thư viện JavaScript hàng đầu hiện nay, giúp bạn xây dựng các ứng dụng web động và hiện đại.\n\nHọc PHP và React cùng nhau sẽ giúp bạn trở thành một lập trình viên web toàn diện! 📚\n\n**Đăng ký ngay để nhận ưu đãi đặc biệt nhé!**', '2025-12-02 20:50:12'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'user', 'có khóa học di động không', '2025-12-02 21:13:15'),
-(0, 'chat_1764303306996_r0t6ljj1k', 'ai', 'Chào bạn! 👋 Hiện tại Code Cùng Sang có khóa học di động rồi nhé! 📱\n\nBạn có thể tham khảo **Lộ Trình Mobile Flutter** của chúng mình. Khóa học này sẽ giúp bạn xây dựng ứng dụng di động đa nền tảng (cho cả iOS và Android) chỉ với một bộ mã nguồn duy nhất, rất hiệu quả và tiện lợi đó! 🚀\n\nĐây là lựa chọn tuyệt vời nếu bạn muốn bắt đầu làm app ngay.\n\nĐăng ký ngay để nhận ưu đãi! ✨', '2025-12-02 21:13:27'),
-(0, 'chat_1764742954037_r7sq4tcrp', 'user', 'nên mua lộ trình học nào', '2025-12-05 13:19:30'),
-(0, 'chat_1764742954037_r7sq4tcrp', 'user', 'nên mua lộ trình học nào', '2025-12-05 13:21:45'),
-(0, 'chat_1764742954037_r7sq4tcrp', 'ai', 'Chào bạn! 😃 Với câu hỏi \"nên mua lộ trình học nào\", mình rất vui được gợi ý cho bạn một lộ trình phổ biến và có nhiều cơ hội nghề nghiệp nhất hiện nay: phát triển web toàn diện!\n\nLộ trình này sẽ giúp bạn vững cả phần xử lý logic phía máy chủ (backend) và giao diện người dùng (frontend) tương tác:\n\n1.  **Bước 1: Backend với PHP**\n    *   Khóa học gợi ý: **Lộ Trình PHP Master** 📚\n    *   Giá: **1.800.000 VNĐ**\n    *   Số học viên: **750 học viên**\n    *   Thời lượng: **80 giờ học**\n    *   Lý do: PHP là ngôn ngữ mạnh mẽ, dễ học và được sử dụng rộng rãi để xây dựng các ứng dụng web động, là nền tảng vững chắc cho mọi dự án.\n\n2.  **Bước 2: Frontend với React**\n    *   Khóa học gợi ý: **React Pro** 💻\n    *   Giá: **1.600.000 VNĐ**\n    *   Số học viên: **600 học viên**\n    *   Thời lượng: **70 giờ học**\n    *   Lý do: React là thư viện JavaScript hàng đầu để xây dựng giao diện người dùng hiện đại, mang lại trải nghiệm tuyệt vời cho người dùng và rất được các công ty săn đón.\n\nVới lộ trình PHP + React, bạn sẽ có bộ kỹ năng toàn diện, rất được săn đón trên thị trường việc làm. Bạn có thể tự tin xây dựng mọi loại ứng dụng web từ cơ bản đến nâng cao!\n\nNếu bạn có định hướng khác như lập trình hệ thống hoặc game, C++ cũng là một lựa chọn rất thú vị. Nhưng để bắt đầu và có nhiều cơ hội thực chiến, web dev là con đường mình gợi ý hàng đầu.\n\nĐăng ký ngay để nhận ưu đãi đặc biệt khi học combo bạn nhé! 🚀', '2025-12-05 13:22:01');
+INSERT INTO `chat_history` (`id`, `user_id`, `session_id`, `role`, `message`, `created_at`) VALUES
+(13, 1, 'chat_1764303306996_r0t6ljj1k', 'user', 'khóa học php giá bao nhiêu', '2025-12-03 14:44:22'),
+(14, 1, 'chat_1764303306996_r0t6ljj1k', 'ai', 'Chào bạn! 🤩 Khóa học PHP bên mình có mức giá rất hấp dẫn đây:\n\n*   **Lộ Trình PHP Master**: **2.000.000 VND** 💰\n\nĐăng ký ngay để nhận ưu đãi! 🚀', '2025-12-03 14:44:28'),
+(15, 1, 'chat_1764303306996_r0t6ljj1k', 'user', 'khóa học nào mắc tiền nhất thế', '2025-12-03 14:47:00'),
+(16, 1, 'chat_1764303306996_r0t6ljj1k', 'ai', 'Chào bạn! 👋 Hiện tại, khóa học có mức giá cao nhất tại Code Cùng Sang là **Lộ Trình AI Cơ Bản** với **4.200.000 VND** 💰.\n\nMặc dù vậy, Code Cùng Sang nổi bật với các khóa học chất lượng cao về phát triển web như PHP (backend) và React (frontend), cùng với C++ cho lập trình hệ thống đó.\n\nNếu bạn quan tâm đến lộ trình học web chuyên nghiệp, mình có thể gợi ý các khóa học này nhé!\nĐăng ký ngay để nhận ưu đãi đặc biệt! 💻', '2025-12-03 14:47:13'),
+(17, 1, 'chat_1764303306996_r0t6ljj1k', 'user', 'muốn làm website thì học khóa học nào hợp lý', '2025-12-03 14:49:08'),
+(18, 1, 'chat_1764303306996_r0t6ljj1k', 'ai', 'Chào bạn! Muốn xây dựng website thì học lập trình web là chuẩn rồi đó! 🚀\n\nĐể làm một website hoàn chỉnh, bạn sẽ cần học cả phần backend (xử lý dữ liệu, logic) và frontend (giao diện người dùng). Code Cùng Sang gợi ý lộ trình học tuyệt vời sau:\n\n1.  **Bước 1: Backend với PHP** 💻\n    *   **Khóa học đề xuất:** **Lộ Trình PHP Master (Toàn Diện)**\n    *   **Lý do:** Đây là khóa học nền tảng và nâng cao về PHP, giúp bạn xây dựng hệ thống xử lý dữ liệu mạnh mẽ cho website của mình. PHP rất phổ biến và dễ học cho người mới bắt đầu.\n    *   **Lợi ích:** Bạn sẽ nắm vững cách tạo API, quản lý dữ liệu phía máy chủ, và xây dựng logic cho ứng dụng web.\n\n2.  **Bước 2: Frontend với React** 🎨\n    *   **Khóa học đề xuất:** **React Cho Người Mới Bắt Đầu**\n    *   **Lý do:** React là một thư viện JavaScript cực kỳ mạnh mẽ để xây dựng giao diện người dùng tương tác, hiện đại và đẹp mắt. Nó được các công ty lớn tin dùng.\n    *   **Lợi ích:** Bạn sẽ học cách tạo ra các thành phần giao diện động, tối ưu trải nghiệm người dùng, và làm cho website của bạn trở nên chuyên nghiệp hơn.\n\nBắt đầu với PHP để xây dựng \"bộ não\" của website, sau đó dùng React để tạo ra \"khuôn mặt\" đẹp và tương tác nhé!\n\nĐăng ký ngay để nhận ưu đãi và bắt đầu hành trình xây dựng website của riêng bạn! 📚', '2025-12-03 14:49:15');
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `courses`
+-- Table structure for table `courses`
 --
 
 CREATE TABLE `courses` (
@@ -127,12 +110,12 @@ CREATE TABLE `courses` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `courses`
+-- Dumping data for table `courses`
 --
 
 INSERT INTO `courses` (`id`, `ten_khoa_hoc`, `mo_ta`, `gia`, `so_hoc_vien`, `so_gio_hoc`, `danh_muc`, `bieu_tuong`, `anh_dai_dien`, `ngay_tao`, `ngay_cap_nhat`, `danh_muc_id`) VALUES
-(1, 'Lộ Trình PHP Master', 'Xây dựng web app mạnh mẽ với PHP, MySQL và Laravel.', 2000.00, 1202, 45, '1', '🐘', 'php.jpg', '2025-10-23 22:25:51', '2025-11-30 14:15:26', 1),
-(2, 'Lộ Trình React Pro', 'Tạo giao diện động với React, Hooks và Redux.', 1000.00, 950, 60, '2', '⚛️', 'react.jpg', '2025-10-23 22:25:51', '2025-11-14 14:49:56', 2),
+(1, 'Lộ Trình PHP Master', 'Xây dựng web app mạnh mẽ với PHP, MySQL và Laravel.', 2000.00, 1204, 45, '1', '🐘', 'php.jpg', '2025-10-23 22:25:51', '2025-12-03 13:51:04', 1),
+(2, 'Lộ Trình React Pro', 'Tạo giao diện động với React, Hooks và Redux.', 1000.00, 952, 60, '2', '⚛️', 'react.jpg', '2025-10-23 22:25:51', '2025-12-03 13:51:04', 2),
 (3, 'Lộ Trình C++ Advanced', 'Lập trình hệ thống với C++, STL và OOP.', 2800000.00, 750, 50, '3', '⚡', 'cpp.jpg', '2025-10-23 22:25:51', '2025-10-24 09:40:43', 3),
 (4, 'Lộ Trình Mobile Flutter', 'Xây dựng ứng dụng iOS & Android với Flutter.', 3500000.00, 600, 55, '4', '📱', 'flutter.jpg', '2025-10-23 22:25:51', '2025-10-24 09:40:45', 4),
 (5, 'Lộ Trình AI Cơ Bản', 'Machine Learning & Deep Learning với Python.', 4200000.00, 430, 70, '5', '🤖', 'ai.jpg', '2025-10-23 22:25:51', '2025-10-24 09:40:48', 5),
@@ -142,7 +125,7 @@ INSERT INTO `courses` (`id`, `ten_khoa_hoc`, `mo_ta`, `gia`, `so_hoc_vien`, `so_
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `course_details`
+-- Table structure for table `course_details`
 --
 
 CREATE TABLE `course_details` (
@@ -157,7 +140,7 @@ CREATE TABLE `course_details` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `course_details`
+-- Dumping data for table `course_details`
 --
 
 INSERT INTO `course_details` (`id`, `ma_khoa_hoc`, `mo_ta_day_du`, `ten_giang_vien`, `gioi_thieu_giang_vien`, `loi_ich`, `ngay_tao`, `ngay_cap_nhat`) VALUES
@@ -172,7 +155,7 @@ INSERT INTO `course_details` (`id`, `ma_khoa_hoc`, `mo_ta_day_du`, `ten_giang_vi
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `course_instructors`
+-- Table structure for table `course_instructors`
 --
 
 CREATE TABLE `course_instructors` (
@@ -181,7 +164,7 @@ CREATE TABLE `course_instructors` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `course_instructors`
+-- Dumping data for table `course_instructors`
 --
 
 INSERT INTO `course_instructors` (`course_id`, `instructor_id`) VALUES
@@ -196,7 +179,7 @@ INSERT INTO `course_instructors` (`course_id`, `instructor_id`) VALUES
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `course_lessons`
+-- Table structure for table `course_lessons`
 --
 
 CREATE TABLE `course_lessons` (
@@ -214,7 +197,7 @@ CREATE TABLE `course_lessons` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `course_lessons`
+-- Dumping data for table `course_lessons`
 --
 
 INSERT INTO `course_lessons` (`id`, `ma_module`, `ten_bai_hoc`, `loai_bai_hoc`, `lien_ket_noi_dung`, `thoi_luong`, `mo_ta`, `thu_tu`, `hoan_thanh`, `ngay_tao`, `ngay_cap_nhat`) VALUES
@@ -261,7 +244,7 @@ INSERT INTO `course_lessons` (`id`, `ma_module`, `ten_bai_hoc`, `loai_bai_hoc`, 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `course_modules`
+-- Table structure for table `course_modules`
 --
 
 CREATE TABLE `course_modules` (
@@ -274,7 +257,7 @@ CREATE TABLE `course_modules` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `course_modules`
+-- Dumping data for table `course_modules`
 --
 
 INSERT INTO `course_modules` (`id`, `course_id`, `module_name`, `duration`, `content`, `sort_order`) VALUES
@@ -292,7 +275,7 @@ INSERT INTO `course_modules` (`id`, `course_id`, `module_name`, `duration`, `con
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `enrollments`
+-- Table structure for table `enrollments`
 --
 
 CREATE TABLE `enrollments` (
@@ -306,17 +289,19 @@ CREATE TABLE `enrollments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `enrollments`
+-- Dumping data for table `enrollments`
 --
 
 INSERT INTO `enrollments` (`id`, `ma_khoa_hoc`, `ma_nguoi_dung`, `ngay_dang_ky`, `trang_thai`, `tien_do`, `ngay_hoan_thanh`) VALUES
-(2, 1, 1, '2025-11-30 14:15:26', 'dang_hoc', 0.00, NULL),
-(3, 7, 1, '2025-11-30 16:43:47', 'dang_hoc', 0.00, NULL);
+(7, 1, 1, '2025-12-03 13:51:04', 'dang_hoc', 0.00, NULL),
+(8, 2, 1, '2025-12-03 13:51:04', 'dang_hoc', 0.00, NULL),
+(9, 7, 1, '2025-12-03 13:53:12', 'dang_hoc', 0.00, NULL),
+(10, 7, 1, '2025-12-03 13:53:15', 'dang_hoc', 0.00, NULL);
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `instructors`
+-- Table structure for table `instructors`
 --
 
 CREATE TABLE `instructors` (
@@ -330,7 +315,7 @@ CREATE TABLE `instructors` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `instructors`
+-- Dumping data for table `instructors`
 --
 
 INSERT INTO `instructors` (`id`, `ho_ten`, `mo_ta`, `anh_dai_dien`, `kinh_nghiem`, `email`, `lien_he`) VALUES
@@ -344,7 +329,7 @@ INSERT INTO `instructors` (`id`, `ho_ten`, `mo_ta`, `anh_dai_dien`, `kinh_nghiem
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `lesson_questions`
+-- Table structure for table `lesson_questions`
 --
 
 CREATE TABLE `lesson_questions` (
@@ -360,7 +345,7 @@ CREATE TABLE `lesson_questions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `lesson_questions`
+-- Dumping data for table `lesson_questions`
 --
 
 INSERT INTO `lesson_questions` (`id`, `ma_lesson`, `cau_hoi`, `loai_cau_hoi`, `options`, `answer`, `diem`, `thu_tu`, `ngay_tao`) VALUES
@@ -437,7 +422,7 @@ INSERT INTO `lesson_questions` (`id`, `ma_lesson`, `cau_hoi`, `loai_cau_hoi`, `o
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `orders`
+-- Table structure for table `orders`
 --
 
 CREATE TABLE `orders` (
@@ -449,22 +434,20 @@ CREATE TABLE `orders` (
   `address` varchar(255) NOT NULL,
   `tong_tien` decimal(10,2) NOT NULL,
   `trang_thai` enum('chờ duyệt','đã duyệt','đã hủy') DEFAULT 'chờ duyệt',
-  `ngay_tao` datetime DEFAULT current_timestamp(),
-  `voucher_id` int(11) DEFAULT NULL,
-  `discount_amount` decimal(10,2) DEFAULT 0.00
+  `ngay_tao` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `orders`
+-- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`id`, `user_id`, `fullname`, `email`, `phone`, `address`, `tong_tien`, `trang_thai`, `ngay_tao`, `voucher_id`, `discount_amount`) VALUES
-(30, 1, 'Thanh Sang', 'sangdzvn007@gmail.com', '0915131493', 'Bến Tre', 2000.00, 'đã duyệt', '2025-11-30 14:15:26', NULL, 0.00);
+INSERT INTO `orders` (`id`, `user_id`, `fullname`, `email`, `phone`, `address`, `tong_tien`, `trang_thai`, `ngay_tao`) VALUES
+(32, 1, 'Thanh Sang', 'sang022101032@tgu.edu.vn', '0915131493', 'Bến Tre', 3000.00, 'đã hủy', '2025-12-03 13:51:04');
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `order_items`
+-- Table structure for table `order_items`
 --
 
 CREATE TABLE `order_items` (
@@ -476,16 +459,56 @@ CREATE TABLE `order_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `order_items`
+-- Dumping data for table `order_items`
 --
 
 INSERT INTO `order_items` (`id`, `order_id`, `course_id`, `so_luong`, `don_gia`) VALUES
-(26, 30, 1, 1, 2000.00);
+(29, 32, 1, 1, 2000.00),
+(30, 32, 2, 1, 1000.00);
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `reviews`
+-- Table structure for table `refund_requests`
+--
+
+CREATE TABLE `refund_requests` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `reason` text NOT NULL,
+  `status` enum('pending','approved','rejected') DEFAULT 'pending',
+  `admin_note` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `refund_requests`
+--
+
+INSERT INTO `refund_requests` (`id`, `order_id`, `reason`, `status`, `admin_note`, `created_at`, `updated_at`) VALUES
+(1, 32, 'dở', 'pending', NULL, '2025-12-05 14:51:09', '2025-12-05 14:51:09');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `refund_transactions`
+--
+
+CREATE TABLE `refund_transactions` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `status` varchar(50) NOT NULL,
+  `admin_id` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reviews`
 --
 
 CREATE TABLE `reviews` (
@@ -497,10 +520,18 @@ CREATE TABLE `reviews` (
   `ngay_tao` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `reviews`
+--
+
+INSERT INTO `reviews` (`id`, `course_id`, `user_id`, `rating`, `comment`, `ngay_tao`) VALUES
+(4, 1, 1, 5, 'Khóa học rất hay và bổ ích', '2025-12-03 13:59:19'),
+(5, 1, 1, 5, 'Khóa học tuyệ vời luôn', '2025-12-03 14:00:16');
+
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `users`
+-- Table structure for table `users`
 --
 
 CREATE TABLE `users` (
@@ -518,7 +549,7 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `users`
+-- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`id`, `username`, `fullname`, `email`, `phone`, `address`, `password`, `role`, `avatar`, `created_at`, `updated_at`) VALUES
@@ -528,7 +559,7 @@ INSERT INTO `users` (`id`, `username`, `fullname`, `email`, `phone`, `address`, 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `user_quiz_answers`
+-- Table structure for table `user_quiz_answers`
 --
 
 CREATE TABLE `user_quiz_answers` (
@@ -543,22 +574,22 @@ CREATE TABLE `user_quiz_answers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `user_quiz_answers`
+-- Dumping data for table `user_quiz_answers`
 --
 
 INSERT INTO `user_quiz_answers` (`id`, `ma_nguoi_dung`, `ma_lesson`, `ma_cau_hoi`, `cau_tra_loi`, `ai_phan_hoi`, `diem_dat_duoc`, `ngay_nop`) VALUES
 (28, 1, 23, 83, '[\"yes\"]', '\"\"', 10.00, '2025-11-30 22:17:11'),
 (29, 1, 23, 84, '\"form elements\"', '\"\"', 10.00, '2025-11-30 22:17:11'),
 (30, 1, 23, 85, '\"không biết\"', '\"Câu trả lời không phải là code. Cần viết code HTML cho một form đăng ký semantic.\"', 0.00, '2025-11-30 22:17:11'),
-(35, 1, 27, 96, '[\"css\"]', '\"Câu trả lời chính xác.\"', 10.00, '2025-12-01 08:41:43'),
-(36, 1, 27, 97, '\"\\t _filename\"', '\"Câu trả lời chính xác sau khi chuẩn hóa (loại bỏ khoảng trắng).\"', 10.00, '2025-12-01 08:41:43'),
-(37, 1, 27, 98, '\"@import \\\"variables\\\"; $primary: #007bff; .btn { color: $p\"', '\"Code gần đúng. Phần import và khai báo biến chính xác, nhưng tên biến \'$p\' trong selector \'.btn\' không đầy đủ (phải là \'$primary\') và thiếu dấu chấm phẩy \';\' cùng dấu ngoặc nhọn \'}\'.\"', 7.00, '2025-12-01 08:41:43'),
-(38, 1, 27, 99, '[\"extend\"]', '\"Câu trả lời chính xác.\"', 10.00, '2025-12-01 08:41:43');
+(43, 1, 27, 96, '[\"css\"]', '\"\"', 10.00, '2025-12-03 15:48:16'),
+(44, 1, 27, 97, '\"_filename\"', '\"\"', 10.00, '2025-12-03 15:48:16'),
+(45, 1, 27, 98, '\"@import \\\"variables\\\"; $primary: #007bff; .btn { color:\"', '\"Code gần đúng nhưng chưa hoàn chỉnh. Thiếu phần sử dụng biến \'$primary\' và dấu đóng \'}\'.\"', 8.00, '2025-12-03 15:48:16'),
+(46, 1, 27, 99, '[\"extend\"]', '\"\"', 10.00, '2025-12-03 15:48:16');
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `vouchers`
+-- Table structure for table `vouchers`
 --
 
 CREATE TABLE `vouchers` (
@@ -577,68 +608,76 @@ CREATE TABLE `vouchers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `vouchers`
+-- Dumping data for table `vouchers`
 --
 
 INSERT INTO `vouchers` (`id`, `code`, `description`, `discount_value`, `discount_type`, `min_order_value`, `start_date`, `end_date`, `usage_limit`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'SAVE10', 'Giảm 10% cho tất cả khóa học', 10.00, 'percent', 0.00, '2025-12-05', '2026-01-04', NULL, 'active', '2025-12-05 06:52:19', '2025-12-05 06:52:19'),
-(2, 'SAVE500K', 'Giảm 500,000 ₫ cho đơn hàng từ 2,000,000 ₫', 500000.00, 'fixed', 2000000.00, '2025-12-05', '2026-01-04', NULL, 'active', '2025-12-05 06:52:19', '2025-12-05 06:52:19'),
-(3, 'WELCOME50K', 'Giảm 50,000 ₫ cho khách hàng mới', 50000.00, 'fixed', 0.00, '2025-12-05', '2026-02-03', 100, 'active', '2025-12-05 06:52:19', '2025-12-05 06:52:19');
+(1, 'SAVE10', 'Giảm 10% cho tất cả khóa học', 10.00, 'percent', 0.00, '2025-12-05', '2026-01-04', NULL, 'active', '2025-12-04 23:52:19', '2025-12-04 23:52:19'),
+(2, 'SAVE500K', 'Giảm 500,000 ₫ cho đơn hàng từ 2,000,000 ₫', 500000.00, 'fixed', 2000000.00, '2025-12-05', '2026-01-04', NULL, 'active', '2025-12-04 23:52:19', '2025-12-04 23:52:19'),
+(3, 'WELCOME50K', 'Giảm 50,000 ₫ cho khách hàng mới', 50000.00, 'fixed', 0.00, '2025-12-05', '2026-02-03', 100, 'active', '2025-12-04 23:52:19', '2025-12-04 23:52:19');
 
 --
--- Chỉ mục cho các bảng đã đổ
+-- Indexes for dumped tables
 --
 
 --
--- Chỉ mục cho bảng `carts`
+-- Indexes for table `carts`
 --
 ALTER TABLE `carts`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
 
 --
--- Chỉ mục cho bảng `categories`
+-- Indexes for table `categories`
 --
 ALTER TABLE `categories`
   ADD PRIMARY KEY (`id`);
 
 --
--- Chỉ mục cho bảng `courses`
+-- Indexes for table `chat_history`
+--
+ALTER TABLE `chat_history`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user_session` (`user_id`,`session_id`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indexes for table `courses`
 --
 ALTER TABLE `courses`
   ADD PRIMARY KEY (`id`),
   ADD KEY `danh_muc_id` (`danh_muc_id`);
 
 --
--- Chỉ mục cho bảng `course_details`
+-- Indexes for table `course_details`
 --
 ALTER TABLE `course_details`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `ma_khoa_hoc` (`ma_khoa_hoc`);
 
 --
--- Chỉ mục cho bảng `course_instructors`
+-- Indexes for table `course_instructors`
 --
 ALTER TABLE `course_instructors`
   ADD PRIMARY KEY (`course_id`,`instructor_id`),
   ADD KEY `instructor_id` (`instructor_id`);
 
 --
--- Chỉ mục cho bảng `course_lessons`
+-- Indexes for table `course_lessons`
 --
 ALTER TABLE `course_lessons`
   ADD PRIMARY KEY (`id`),
   ADD KEY `ma_module` (`ma_module`);
 
 --
--- Chỉ mục cho bảng `course_modules`
+-- Indexes for table `course_modules`
 --
 ALTER TABLE `course_modules`
   ADD PRIMARY KEY (`id`),
   ADD KEY `course_id` (`course_id`);
 
 --
--- Chỉ mục cho bảng `enrollments`
+-- Indexes for table `enrollments`
 --
 ALTER TABLE `enrollments`
   ADD PRIMARY KEY (`id`),
@@ -646,28 +685,27 @@ ALTER TABLE `enrollments`
   ADD KEY `ma_nguoi_dung` (`ma_nguoi_dung`);
 
 --
--- Chỉ mục cho bảng `instructors`
+-- Indexes for table `instructors`
 --
 ALTER TABLE `instructors`
   ADD PRIMARY KEY (`id`);
 
 --
--- Chỉ mục cho bảng `lesson_questions`
+-- Indexes for table `lesson_questions`
 --
 ALTER TABLE `lesson_questions`
   ADD PRIMARY KEY (`id`),
   ADD KEY `ma_lesson` (`ma_lesson`);
 
 --
--- Chỉ mục cho bảng `orders`
+-- Indexes for table `orders`
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `fk_orders_voucher` (`voucher_id`);
+  ADD KEY `user_id` (`user_id`);
 
 --
--- Chỉ mục cho bảng `order_items`
+-- Indexes for table `order_items`
 --
 ALTER TABLE `order_items`
   ADD PRIMARY KEY (`id`),
@@ -675,7 +713,22 @@ ALTER TABLE `order_items`
   ADD KEY `course_id` (`course_id`);
 
 --
--- Chỉ mục cho bảng `reviews`
+-- Indexes for table `refund_requests`
+--
+ALTER TABLE `refund_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`);
+
+--
+-- Indexes for table `refund_transactions`
+--
+ALTER TABLE `refund_transactions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `reviews`
 --
 ALTER TABLE `reviews`
   ADD PRIMARY KEY (`id`),
@@ -683,14 +736,14 @@ ALTER TABLE `reviews`
   ADD KEY `user_id` (`user_id`);
 
 --
--- Chỉ mục cho bảng `users`
+-- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Chỉ mục cho bảng `user_quiz_answers`
+-- Indexes for table `user_quiz_answers`
 --
 ALTER TABLE `user_quiz_answers`
   ADD PRIMARY KEY (`id`),
@@ -699,182 +752,205 @@ ALTER TABLE `user_quiz_answers`
   ADD KEY `ma_cau_hoi` (`ma_cau_hoi`);
 
 --
--- Chỉ mục cho bảng `vouchers`
+-- Indexes for table `vouchers`
 --
 ALTER TABLE `vouchers`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `code` (`code`);
 
 --
--- AUTO_INCREMENT cho các bảng đã đổ
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT cho bảng `carts`
+-- AUTO_INCREMENT for table `carts`
 --
 ALTER TABLE `carts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
--- AUTO_INCREMENT cho bảng `categories`
+-- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
--- AUTO_INCREMENT cho bảng `courses`
+-- AUTO_INCREMENT for table `chat_history`
+--
+ALTER TABLE `chat_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+
+--
+-- AUTO_INCREMENT for table `courses`
 --
 ALTER TABLE `courses`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT cho bảng `course_details`
+-- AUTO_INCREMENT for table `course_details`
 --
 ALTER TABLE `course_details`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT cho bảng `course_lessons`
+-- AUTO_INCREMENT for table `course_lessons`
 --
 ALTER TABLE `course_lessons`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
--- AUTO_INCREMENT cho bảng `course_modules`
+-- AUTO_INCREMENT for table `course_modules`
 --
 ALTER TABLE `course_modules`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT cho bảng `enrollments`
+-- AUTO_INCREMENT for table `enrollments`
 --
 ALTER TABLE `enrollments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT cho bảng `instructors`
+-- AUTO_INCREMENT for table `instructors`
 --
 ALTER TABLE `instructors`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
--- AUTO_INCREMENT cho bảng `lesson_questions`
+-- AUTO_INCREMENT for table `lesson_questions`
 --
 ALTER TABLE `lesson_questions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
 
 --
--- AUTO_INCREMENT cho bảng `orders`
+-- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
--- AUTO_INCREMENT cho bảng `order_items`
+-- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
--- AUTO_INCREMENT cho bảng `reviews`
+-- AUTO_INCREMENT for table `refund_requests`
 --
-ALTER TABLE `reviews`
+ALTER TABLE `refund_requests`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `refund_transactions`
+--
+ALTER TABLE `refund_transactions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT cho bảng `users`
+-- AUTO_INCREMENT for table `reviews`
+--
+ALTER TABLE `reviews`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT cho bảng `user_quiz_answers`
+-- AUTO_INCREMENT for table `user_quiz_answers`
 --
 ALTER TABLE `user_quiz_answers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
--- AUTO_INCREMENT cho bảng `vouchers`
---
-ALTER TABLE `vouchers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- Các ràng buộc cho các bảng đã đổ
+-- Constraints for dumped tables
 --
 
 --
--- Các ràng buộc cho bảng `carts`
+-- Constraints for table `carts`
 --
 ALTER TABLE `carts`
   ADD CONSTRAINT `carts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `courses`
+-- Constraints for table `chat_history`
+--
+ALTER TABLE `chat_history`
+  ADD CONSTRAINT `fk_chat_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `courses`
 --
 ALTER TABLE `courses`
   ADD CONSTRAINT `courses_ibfk_1` FOREIGN KEY (`danh_muc_id`) REFERENCES `categories` (`id`);
 
 --
--- Các ràng buộc cho bảng `course_details`
+-- Constraints for table `course_details`
 --
 ALTER TABLE `course_details`
   ADD CONSTRAINT `course_details_ibfk_1` FOREIGN KEY (`ma_khoa_hoc`) REFERENCES `courses` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `course_instructors`
+-- Constraints for table `course_instructors`
 --
 ALTER TABLE `course_instructors`
   ADD CONSTRAINT `course_instructors_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`),
   ADD CONSTRAINT `course_instructors_ibfk_2` FOREIGN KEY (`instructor_id`) REFERENCES `instructors` (`id`);
 
 --
--- Các ràng buộc cho bảng `course_lessons`
+-- Constraints for table `course_lessons`
 --
 ALTER TABLE `course_lessons`
   ADD CONSTRAINT `course_lessons_ibfk_1` FOREIGN KEY (`ma_module`) REFERENCES `course_modules` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `course_modules`
+-- Constraints for table `course_modules`
 --
 ALTER TABLE `course_modules`
   ADD CONSTRAINT `course_modules_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `enrollments`
+-- Constraints for table `enrollments`
 --
 ALTER TABLE `enrollments`
   ADD CONSTRAINT `enrollments_ibfk_1` FOREIGN KEY (`ma_khoa_hoc`) REFERENCES `courses` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `lesson_questions`
+-- Constraints for table `lesson_questions`
 --
 ALTER TABLE `lesson_questions`
   ADD CONSTRAINT `lesson_questions_ibfk_1` FOREIGN KEY (`ma_lesson`) REFERENCES `course_lessons` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `orders`
+-- Constraints for table `orders`
 --
 ALTER TABLE `orders`
-  ADD CONSTRAINT `fk_orders_voucher` FOREIGN KEY (`voucher_id`) REFERENCES `vouchers` (`id`),
   ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
--- Các ràng buộc cho bảng `order_items`
+-- Constraints for table `order_items`
 --
 ALTER TABLE `order_items`
   ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
   ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`);
 
 --
--- Các ràng buộc cho bảng `reviews`
+-- Constraints for table `refund_requests`
+--
+ALTER TABLE `refund_requests`
+  ADD CONSTRAINT `refund_requests_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `reviews`
 --
 ALTER TABLE `reviews`
   ADD CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`),
   ADD CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
--- Các ràng buộc cho bảng `user_quiz_answers`
+-- Constraints for table `user_quiz_answers`
 --
 ALTER TABLE `user_quiz_answers`
   ADD CONSTRAINT `user_quiz_answers_ibfk_1` FOREIGN KEY (`ma_lesson`) REFERENCES `course_lessons` (`id`) ON DELETE CASCADE,
