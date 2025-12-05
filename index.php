@@ -50,6 +50,7 @@ $courses = $controller->model->getAll();
 
   <?php include __DIR__ . '/layout/chat-ai.php'; ?>
   <?php include __DIR__ . '/layout/catalogue.php'; ?>
+  <?php include __DIR__ . '/search-results.php'; ?>
 
   <script>
     function goToDetail(id) {

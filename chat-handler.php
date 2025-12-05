@@ -1,4 +1,5 @@
 <?php
+session_start();
 // Bật error reporting (xóa khi production)
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -33,22 +34,43 @@ if (!defined('GEMINI_API_KEYS') || empty(GEMINI_API_KEYS)) {
     exit;
 }
 
-// Helper: Lưu tin nhắn vào DB
-function saveMessage($sessionId, $role, $message) {
+// Helper: Lấy user_id hiện tại (từ session hoặc auth token; tùy chỉnh theo hệ thống của bạn)
+function getCurrentUserId() {
+    // Ví dụ: Từ session (sau khi login)
+    $user_id = $_SESSION['id'];
+    return $user_id ?? null;
+    // Hoặc từ JWT: return decodeJWT($_SERVER['HTTP_AUTHORIZATION'] ?? '')['user_id'] ?? null;
+}
+
+// Helper: Lưu tin nhắn vào DB (bây giờ bao gồm user_id)
+function saveMessage($userId, $sessionId, $role, $message) {
     global $conn;
-    $stmt = $conn->prepare("INSERT INTO chat_history (session_id, role, message) VALUES (?, ?, ?)");
-    if (!$stmt) throw new Exception('Prepare save failed: ' . $conn->error);
-    $stmt->bind_param('sss', $sessionId, $role, $message);
+    if ($userId) {
+        $stmt = $conn->prepare("INSERT INTO chat_history (user_id, session_id, role, message) VALUES (?, ?, ?, ?)");
+        if (!$stmt) throw new Exception('Prepare save failed: ' . $conn->error);
+        $stmt->bind_param('isss', $userId, $sessionId, $role, $message);
+    } else {
+        // Fallback cho anonymous (chỉ session_id)
+        $stmt = $conn->prepare("INSERT INTO chat_history (user_id, session_id, role, message) VALUES (NULL, ?, ?, ?)");
+        if (!$stmt) throw new Exception('Prepare save failed: ' . $conn->error);
+        $stmt->bind_param('sss', $sessionId, $role, $message);
+    }
     if (!$stmt->execute()) throw new Exception('Save message failed: ' . $stmt->error);
     $stmt->close();
 }
 
-// Helper: Load history từ DB (50 tin gần nhất)
-function loadHistory($sessionId) {
+// Helper: Load history từ DB (50 tin gần nhất, ưu tiên theo user_id nếu có)
+function loadHistory($userId, $sessionId) {
     global $conn;
-    $stmt = $conn->prepare("SELECT role, message, created_at FROM chat_history WHERE session_id = ? ORDER BY created_at ASC LIMIT 50");
-    if (!$stmt) throw new Exception('Prepare load failed: ' . $conn->error);
-    $stmt->bind_param('s', $sessionId);
+    if ($userId) {
+        $stmt = $conn->prepare("SELECT role, message, created_at FROM chat_history WHERE user_id = ? AND session_id = ? ORDER BY created_at ASC LIMIT 50");
+        if (!$stmt) throw new Exception('Prepare load failed: ' . $conn->error);
+        $stmt->bind_param('is', $userId, $sessionId);
+    } else {
+        $stmt = $conn->prepare("SELECT role, message, created_at FROM chat_history WHERE session_id = ? ORDER BY created_at ASC LIMIT 50");
+        if (!$stmt) throw new Exception('Prepare load failed: ' . $conn->error);
+        $stmt->bind_param('s', $sessionId);
+    }
     $stmt->execute();
     $result = $stmt->get_result();
     $history = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
@@ -59,13 +81,14 @@ function loadHistory($sessionId) {
 // Xử lý request
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['load_history'])) {
     // Load history
+    $userId = getCurrentUserId();
     $sessionId = $_GET['session_id'] ?? '';
     if (empty($sessionId)) {
         echo json_encode(['history' => []]);
         exit;
     }
     try {
-        $history = loadHistory($sessionId);
+        $history = loadHistory($userId, $sessionId);
         echo json_encode(['history' => $history]);
     } catch (Exception $e) {
         echo json_encode(['error' => $e->getMessage()]);
@@ -85,16 +108,21 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     exit;
 }
 $userMessage = trim($input['message'] ?? '');
-$sessionId = $input['session_id'] ?? '';  // Nhận session_id từ frontend
+$sessionId = $input['session_id'] ?? '';
+$userId = getCurrentUserId();  // Lấy từ auth
 
 if (empty($userMessage) || empty($sessionId)) {
     echo json_encode(['error' => 'Missing message or session_id']);
     exit;
 }
 
+if (!$userId) {
+    error_log('Warning: No user_id found; using anonymous mode');
+}
+
 // Lưu user message trước
 try {
-    saveMessage($sessionId, 'user', $userMessage);
+    saveMessage($userId, $sessionId, 'user', $userMessage);
 } catch (Exception $e) {
     echo json_encode(['error' => 'Save user message failed: ' . $e->getMessage()]);
     exit;
@@ -190,7 +218,8 @@ function extractGeminiText($apiResponse) {
     return null;
 }
 
-$apiUrlBase = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    $apiUrlBase = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
 
 try {
     // Phân loại & generate reply (cập nhật classification để xử lý khuyến nghị tốt hơn)
@@ -320,7 +349,7 @@ try {
     
     // Lưu AI reply sau khi generate
     try {
-        saveMessage($sessionId, 'ai', $aiReply);
+        saveMessage($userId, $sessionId, 'ai', $aiReply);
     } catch (Exception $e) {
         error_log('Save AI reply failed: ' . $e->getMessage());  // Không throw để không break chat
     }
