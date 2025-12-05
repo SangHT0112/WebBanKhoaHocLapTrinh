@@ -16,6 +16,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <li><a href="/index.php" class="hover:text-yellow-400">Trang Chủ</a></li>
     <li><a href="/category.php" class="hover:text-yellow-400">Sản phẩm</a></li>
     <li><a href="/page/cart/cart.php" class="hover:text-yellow-400">Giỏ hàng</a></li>
+    <li><a href="/page/orders/orders.php" class="hover:text-yellow-400">Đơn hàng</a></li>
     <li><a href="/page/contact/contact.php" class="hover:text-yellow-400">Liên Hệ</a></li>
   </ul>
 
@@ -57,6 +58,10 @@ if (session_status() === PHP_SESSION_NONE) {
                 <a href="/page/profile/profile.php" class="px-4 py-2 hover:bg-gray-100">Trang cá nhân</a>
                 <a href="/page/orders/orders.php" class="px-4 py-2 hover:bg-gray-100">Đơn hàng</a>
                 <a href="/page/profile/update.php" class="px-4 py-2 hover:bg-gray-100">Cập nhật thông tin</a>
+                <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                  <hr class="my-1">
+                  <a href="/page/admin/index.php?page=refunds" class="px-4 py-2 hover:bg-blue-100 text-blue-600 font-bold">⚙️ Admin - Trả hàng</a>
+                <?php endif; ?>
                 <a href="/page/logout/logout.php" class="px-4 py-2 hover:bg-red-100 text-red-600">Đăng xuất</a>
             </div>
         </div>

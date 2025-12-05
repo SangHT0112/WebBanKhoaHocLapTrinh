@@ -12,6 +12,14 @@ class OrderController {
     return $this->model->getAll();
   }
 
+  public function getUserOrders($user_id) {
+    return $this->model->getByUserId($user_id);
+  }
+
+  public function getOrderDetails($order_id) {
+    return $this->model->getOrderDetails($order_id);
+  }
+
   public function update($id, $status) {
     return $this->model->updateStatus($id, $status);
   }

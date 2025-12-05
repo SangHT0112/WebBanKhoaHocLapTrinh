@@ -19,7 +19,8 @@ $page = $_GET['page'] ?? 'dashboard'; // nếu không có ?page thì mặc đị
         <a href="?page=dashboard" class="block p-2 rounded hover:bg-gray-700 <?= $page=='dashboard'?'bg-gray-700':'' ?>">🏠 Tổng quan</a>
         <a href="?page=courses" class="block p-2 rounded hover:bg-gray-700 <?= $page=='courses'?'bg-gray-700':'' ?>">📚 Khóa học</a>
         <a href="?page=users" class="block p-2 rounded hover:bg-gray-700 <?= $page=='users'?'bg-gray-700':'' ?>">👥 Người dùng</a>
-        <a href="?page=orders" class="block p-2 rounded hover:bg-gray-700 <?= $page=='orders'?'bg-gray-700':'' ?>">👥 Đơn hàng</a>
+        <a href="?page=orders" class="block p-2 rounded hover:bg-gray-700 <?= $page=='orders'?'bg-gray-700':'' ?>">📦 Đơn hàng</a>
+        <a href="?page=refunds" class="block p-2 rounded hover:bg-gray-700 <?= $page=='refunds'?'bg-gray-700':'' ?>">🔄 Trả hàng</a>
         <a href="?page=settings" class="block p-2 rounded hover:bg-gray-700 <?= $page=='settings'?'bg-gray-700':'' ?>">⚙️ Cài đặt</a>
        <a href="../../index.php" class="block p-2 rounded hover:bg-gray-700 <?= $page=='settings'?'bg-gray-700':'' ?>">🎓 Trang bán khóa học</a>
 

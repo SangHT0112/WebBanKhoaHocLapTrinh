@@ -18,4 +18,8 @@ $validKeys = array_filter($rawKeys, function($key) {
 });
 
 define('GEMINI_API_KEYS', $validKeys);  // Mảng keys đã lọc
+
+
+define('GMAIL_USERNAME', 'huynhtsang2004@gmail.com');
+define('GMAIL_PASSWORD', 'xtrgjliokmzruehr'); 
 ?>
