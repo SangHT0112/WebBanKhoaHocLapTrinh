@@ -46,7 +46,7 @@ if ($category === 'all') {
       </div>
     
       <!-- SỬA: Thêm ID cho input và button để JS xử lý -->
-      <div class="flex items-center bg-white/20 rounded-full px-3 py-1">
+      <div class="flex items-center bg-white/20 rounded-full px-8 py-1">
           <input
             type="text"
             id="searchInput"
@@ -157,7 +157,7 @@ if ($category === 'all') {
                 }
 
                 // Render AI results
-                updateSearchResults(data.reply, data.raw_results, query);
+                updateSearchResults(data.reply, data.filtered_courses, query);
             })
             .catch(error => {
                 console.error('Fetch error:', error);
@@ -244,5 +244,7 @@ if ($category === 'all') {
       window.location.href = `course-detail.php?id=${id}`;
     }
   </script>
+
+<?php include __DIR__ . '/search-results.php'; ?>
 </body>
 </html>

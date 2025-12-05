@@ -25,10 +25,12 @@ if (session_status() === PHP_SESSION_NONE) {
     <div class="flex items-center bg-white/20 rounded-full px-3 py-1">
       <input
         type="text"
+        id="searchInput"
         placeholder="Tìm kiếm lộ trình..."
         class="bg-transparent text-white placeholder-white/70 focus:outline-none px-2 w-40"
+        onkeypress="if(event.key==='Enter') performSearch()"
       />
-      <button class="bg-yellow-400 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-yellow-300">🔍</button>
+      <button class="bg-yellow-400 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-yellow-300" onclick="performSearch()">🔍</button>
     </div>
 
     <!-- Auth -->

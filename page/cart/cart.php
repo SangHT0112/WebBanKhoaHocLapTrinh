@@ -233,3 +233,4 @@ $vietqr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_no}-{$template}.
 
 </body>
 </html>
+<?php include __DIR__ . '/../../search-results.php'; ?>

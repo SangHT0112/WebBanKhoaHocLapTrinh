@@ -445,3 +445,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+<?php include __DIR__ . '/search-results.php'; ?>

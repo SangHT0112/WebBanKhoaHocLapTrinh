@@ -13,11 +13,10 @@ $courseId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $review_success = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $ten     = trim($_POST['ten'] ?? '');
     $rating  = max(1, min(5, intval($_POST['so_sao'] ?? 5)));
     $comment = trim($_POST['noi_dung'] ?? '');
 
-    if ($courseId > 0 && $ten !== '' && $comment !== '') {
+    if ($courseId > 0 && $comment !== '') {
         $id     = null;
         $userId = $_SESSION['id']; 
 
@@ -91,9 +90,7 @@ if ($courseId > 0) {
         <div class="review-form-card">
             <h3>Để lại đánh giá của bạn</h3>
             <form method="POST">
-                <div class="form-group">
-                    <input type="text" name="ten" placeholder="Họ và tên" required maxlength="50">
-                </div>
+        
 
                 <div class="form-group">
                     <label>Chọn số sao:</label>
